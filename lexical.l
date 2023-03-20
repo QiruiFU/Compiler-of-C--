@@ -2,8 +2,10 @@
 #include "syntax.tab.h"
 #include "include.h"
 #include<string.h>
+#include<stdlib.h>
 int lineno = 1;
 int yycolumn = 1;
+extern int cnt_False;
 
 #define YYSTYPE struct tree_node*
 
@@ -22,6 +24,26 @@ digit [0-9]
 PosNum [1-9]
 
 %%
+
+"//" {char c=input(); while(c!='\n') c=input(); lineno++; yycolumn=1;}
+"/*" {
+        char a=input(); char b=input();
+        if(a=='\n') lineno++;
+        if(b=='\n') lineno++;
+        while(a!='*'||b!='/'){
+            a = b;
+            b = input();
+            if(b=='\n'){
+                lineno++;
+                yycolumn = 1;
+            }
+            if(b=='\0'){
+                printf("Error type A at Line %d : No match comment symbol\n", lineno);
+                break;
+            }
+        }
+    }
+
 [\t ]+ {}
 \n {lineno++; yycolumn=1;}
 ";" { yylval=new_node("SEMI", lineno, yytext); return SEMI;}
@@ -52,7 +74,7 @@ PosNum [1-9]
 0{digit}+ {printf("Error type A at Line %d : invalid 0\n", lineno);}
 ({PosNum}{digit}*|0)\.{digit}+ { yylval=new_node("FLOAT", lineno, yytext); return FLOAT;}
 ("_"|{letter})("_"|{digit}|{letter})* { yylval=new_node("ID", lineno, yytext); return ID;}
-.  {printf("Error type A at Line %d : Mysterious characters \'%s\' \n", lineno, yytext);}
+.  {cnt_False++; printf("Error type A at Line %d : Mysterious characters \'%s\' \n", lineno, yytext);}
 
 %%
 

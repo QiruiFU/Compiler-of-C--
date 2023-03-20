@@ -5,10 +5,10 @@
 #include "include.h"
 extern struct tree_node* ROOT;
 extern struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node** children);
+extern int yyerror(char*);
 
 // #define YYDEBUG 1
 
-token temp;
 int cnt_False = 0;
 %}
 
@@ -22,7 +22,18 @@ int cnt_False = 0;
 %token INT FLOAT ID
 
 
-
+%right ASSIGNOP
+%left OR
+%left AND 
+%left RELOP
+%left PLUS MINUS
+%left STAR DIV
+%right NOT 
+%left DOT 
+%left LB RB 
+%left LP RP
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 
 %%
@@ -92,7 +103,7 @@ StmtList : Stmt StmtList {struct tree_node* p[2]={$1,$2}; $$=fatherize("StmtList
 Stmt : Exp SEMI {struct tree_node* p[2]={$1,$2}; $$=fatherize("Stmt", @$.first_line, 2, p);}
     | CompSt {struct tree_node* p[1]={$1}; $$=fatherize("Stmt", @$.first_line, 1, p);}
     | RETURN Exp SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Stmt", @$.first_line, 3, p);}
-    | IF LP Exp RP Stmt {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
+    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
     | IF LP Exp RP Stmt ELSE Stmt {struct tree_node* p[7]={$1,$2,$3,$4,$5,$6,$7}; $$=fatherize("Stmt", @$.first_line, 7, p);}
     | WHILE LP Exp RP Stmt {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
     ;
@@ -143,7 +154,7 @@ Args : Exp COMMA Args {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Args", @
 
 %%
 
-yyerror(char* msg){
+int yyerror(char* msg){
     printf("Error type B at Line %d : %s \n", lineno, msg);
     cnt_False++;
 }
