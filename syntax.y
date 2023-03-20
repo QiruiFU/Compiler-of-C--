@@ -52,6 +52,8 @@ ExtDefList : ExtDef ExtDefList {struct tree_node* p[2]={$1,$2}; $$=fatherize("Ex
 ExtDef : Specifier ExtDecList SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("ExtDef", @$.first_line, 3, p);}
     | Specifier SEMI {struct tree_node* p[2]={$1,$2}; $$=fatherize("ExtDef", @$.first_line, 2, p);}
     | Specifier FunDec CompSt {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("ExtDef", @$.first_line, 3, p);}
+    | Specifier ExtDecList error SEMI 
+    | Specifier error SEMI 
     ;
 
 ExtDecList : VarDec {struct tree_node* p[1]={$1}; $$=fatherize("ExtDecList", @$.first_line, 1, p);}
@@ -106,6 +108,8 @@ Stmt : Exp SEMI {struct tree_node* p[2]={$1,$2}; $$=fatherize("Stmt", @$.first_l
     | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
     | IF LP Exp RP Stmt ELSE Stmt {struct tree_node* p[7]={$1,$2,$3,$4,$5,$6,$7}; $$=fatherize("Stmt", @$.first_line, 7, p);}
     | WHILE LP Exp RP Stmt {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
+    | Exp error SEMI
+    | RETURN Exp error SEMI
     ;
 
 /*=========== Local Definition ========*/
@@ -115,6 +119,7 @@ DefList : Def DefList {struct tree_node* p[2]={$1,$2}; $$=fatherize("DefList", @
     ;
 
 Def : Specifier DecList SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Def", @$.first_line, 3, p);}
+    | Specifier DecList error SEMI
     ;
 
 DecList : Dec {struct tree_node* p[1]={$1}; $$=fatherize("DecList", @$.first_line, 1, p);}
@@ -155,6 +160,6 @@ Args : Exp COMMA Args {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Args", @
 %%
 
 int yyerror(char* msg){
-    printf("Error type B at Line %d : %s \n", lineno, msg);
+    printf("Error type B at Line %d: %s \n", lineno, msg);
     cnt_False++;
 }

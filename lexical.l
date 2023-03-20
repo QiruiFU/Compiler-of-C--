@@ -38,7 +38,7 @@ PosNum [1-9]
                 yycolumn = 1;
             }
             if(b=='\0'){
-                printf("Error type A at Line %d : No match comment symbol\n", lineno);
+                printf("Error type A at Line %d: No match comment symbol\n", lineno);
                 break;
             }
         }
@@ -71,10 +71,10 @@ PosNum [1-9]
 "else" { yylval=new_node("ELSE", lineno, yytext); return ELSE;}
 "while" { yylval=new_node("WHILE", lineno, yytext); return WHILE;}
 {PosNum}{digit}*|0 { yylval=new_node("INT", lineno, yytext); return INT;}
-0{digit}+ {printf("Error type A at Line %d : invalid 0\n", lineno);}
+0{digit}+ {printf("Error type A at Line %d: invalid 0\n", lineno);}
 ({PosNum}{digit}*|0)\.{digit}+ { yylval=new_node("FLOAT", lineno, yytext); return FLOAT;}
 ("_"|{letter})("_"|{digit}|{letter})* { yylval=new_node("ID", lineno, yytext); return ID;}
-.  {cnt_False++; printf("Error type A at Line %d : Mysterious characters \'%s\' \n", lineno, yytext);}
+.  {cnt_False++; printf("Error type A at Line %d: Mysterious characters \'%s\' \n", lineno, yytext);}
 
 %%
 

@@ -8,7 +8,7 @@ extern int lineno;
 extern int cnt_False;
 extern int yydebug;
 extern void yyrestart(FILE*);
-extern yyparse();
+extern int yyparse();
 
 struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node* children[20]){
     // build a new node, which is the father of given nodes
