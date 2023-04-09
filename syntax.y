@@ -2,7 +2,7 @@
 #define YYSTYPE struct tree_node*
 #include <stdio.h>
 #include "lex.yy.c"
-#include "include.h"
+#include "ParseTree.h"
 extern struct tree_node* ROOT;
 extern struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node** children);
 extern int yyerror(char*);
@@ -37,8 +37,6 @@ int cnt_False = 0;
 
 
 %%
-
-// TODO : build the tree for all recursion
 
 /*=========== High-level ========*/
 
