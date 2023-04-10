@@ -26,6 +26,7 @@ int main(int argc, char** argv){
 
     if(cnt_False == 0){
         print_tree(ROOT, 0);
+        return 0;
     }
 
     return 0;
