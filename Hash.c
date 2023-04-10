@@ -1,5 +1,8 @@
 #include "Hash.h"
 #include<stdio.h>
+#include<stdlib.h>
+#include<assert.h>
+#include<string.h>
 
 unsigned int Hash_func(char* str){
     unsigned int val = 0, i;
@@ -12,12 +15,20 @@ unsigned int Hash_func(char* str){
 
 void Hash_Add(HashTable* table, Symbol sym){
     unsigned int val = Hash_func(sym.name);
-    HashTableNode* cur = table->table[val];
-    while(cur != NULL) cur = cur->nxt;
     HashTableNode* p = (HashTableNode*)malloc(sizeof(HashTableNode));
     p->symbol = sym;
     p->nxt = NULL;
-    cur->nxt = p;
+
+    HashTableNode* cur = table->table[val];
+    if(cur==NULL) table->table[val] = p;
+    else{
+        assert(strcmp(cur->symbol.name, sym.name)!=0);
+        while(cur->nxt != NULL){
+            assert(strcmp(cur->symbol.name, sym.name)!=0);
+            cur = cur->nxt;
+        }
+        cur->nxt = p;
+    }
 }
 
 int Hash_Find(HashTable* table, Symbol sym){
@@ -25,10 +36,10 @@ int Hash_Find(HashTable* table, Symbol sym){
     HashTableNode* cur = table->table[val];
     while(cur != NULL){
         if(cur->symbol.name == sym.name){
-            if(cur->symbol.kind == VARIABLE && sym.kind == VARIABLE) return 1;
-            else if(cur->symbol.kind == VARIABLE && sym.kind == FUNCTION) return 2;
-            else if(cur->symbol.kind == FUNCTION && sym.kind == VARIABLE) return 3;
-            else if(cur->symbol.kind == FUNCTION && sym.kind == FUNCTION) return 4;
+            if(cur->symbol.kind == VARIABLEE && sym.kind == VARIABLEE) return 1;
+            else if(cur->symbol.kind == VARIABLEE && sym.kind == FUNCTIONN) return 2;
+            else if(cur->symbol.kind == FUNCTIONN && sym.kind == VARIABLEE) return 3;
+            else if(cur->symbol.kind == FUNCTIONN && sym.kind == FUNCTIONN) return 4;
         }
         cur = cur->nxt;
     }

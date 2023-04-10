@@ -1,6 +1,9 @@
 #ifndef PARSETREE
 #define PARSETREE
 
+#include "Hash.h"
+#include "type_func.h"
+
 typedef union{
     char id[32];
     int val_int;
@@ -19,5 +22,6 @@ struct tree_node{
 
 struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node* children[20]);
 void print_tree(struct tree_node* root, int depth);
+void analyse(struct tree_node*root);
 
 #endif

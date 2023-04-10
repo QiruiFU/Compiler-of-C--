@@ -1,4 +1,14 @@
+struct psjfoasi{
+    int a;
+};
+
 int main()
 {
     int i = 1;
+    struct sifnsiofn b;
+}
+
+int k(int t, int a){
+    a = t;
+    return u;
 }

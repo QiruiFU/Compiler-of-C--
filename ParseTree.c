@@ -50,3 +50,22 @@ void print_tree(struct tree_node* root, int depth){
         cur = cur->brother;
     }
 }
+
+void analyse(struct tree_node* root){
+    if(root == NULL) return;
+
+
+    struct tree_node* cur = root;
+    if(strcmp(cur->name, "ID")==0){
+        Symbol sym;
+        strcpy(sym.name, cur->compos.id);
+        printf("insert %s into hash_talbe\n", sym.name);
+        Hash_Add(&Hash_table, sym);
+    }
+    
+    cur = cur->first_child;
+    while(cur!=NULL){
+        analyse(cur);
+        cur = cur->brother;
+    }
+}
