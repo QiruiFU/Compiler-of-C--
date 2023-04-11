@@ -40,9 +40,10 @@ typedef struct{
 
 #define VARIABLEE 0
 #define FUNCTIONN 1
+#define STRUCTT 2
 
 typedef struct{
-    char name[10];
+    char name[50];
     int kind;
     union{
         Type sym_type;

@@ -1,14 +1,12 @@
-struct psjfoasi{
-    int a;
-};
+int f(int a, int b){
+    return a + b;
+}
+
+int f(int a){
+    return x * 2;
+}
 
 int main()
 {
-    int i = 1;
-    struct sifnsiofn b;
-}
-
-int k(int t, int a){
-    a = t;
-    return u;
+    int i = 0;
 }

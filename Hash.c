@@ -35,13 +35,13 @@ int Hash_Find(HashTable* table, Symbol sym){
     unsigned int val = Hash_func(sym.name);
     HashTableNode* cur = table->table[val];
     while(cur != NULL){
-        if(cur->symbol.name == sym.name){
+        if(strcmp(cur->symbol.name, sym.name)==0){
             if(cur->symbol.kind == VARIABLEE && sym.kind == VARIABLEE) return 1;
-            else if(cur->symbol.kind == VARIABLEE && sym.kind == FUNCTIONN) return 2;
-            else if(cur->symbol.kind == FUNCTIONN && sym.kind == VARIABLEE) return 3;
+            else if(cur->symbol.kind == VARIABLEE && sym.kind == STRUCTT) return 2;
+            else if(cur->symbol.kind == STRUCTT && sym.kind == VARIABLEE) return 3;
             else if(cur->symbol.kind == FUNCTIONN && sym.kind == FUNCTIONN) return 4;
         }
         cur = cur->nxt;
     }
-    return -1;
+    return 0;
 }

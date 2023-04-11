@@ -12,6 +12,7 @@ typedef union{
 
 struct tree_node{
     char name[32];
+    int cnt_child;
     int first_line;
     struct tree_node* father;
     struct tree_node* first_child;
