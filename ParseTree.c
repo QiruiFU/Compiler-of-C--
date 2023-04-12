@@ -67,14 +67,14 @@ struct tree_node* child_of_no(int x, struct tree_node* root){
     return cur;
 }
 
-void GetType(struct tree_node* root){
+void DFS(struct tree_node* root){
     if(root==NULL) return;
 
 
-    struct tree_node* cur = root->first_child;
-    while(cur!=NULL){
-        GetType(cur);
-        cur = cur->brother;
+    struct tree_node* curr = root->first_child;
+    while(curr!=NULL){
+        DFS(curr);
+        curr = curr->brother;
     }
 
     // printf("%s in\n", root->name);
@@ -143,6 +143,159 @@ void GetType(struct tree_node* root){
             else Dec = child_of_no(3, Dec);
         }
     }
+    else if(strcmp(root->name, "Exp")==0){
+        if(root->cnt_child==1){ // EXP -> ID / INT / FLOAT
+            if(strcmp(root->first_child->name, "ID")==0){
+                Symbol sym;
+                sym.kind = VARIABLEE;
+                strcpy(sym.name, root->first_child->compos.id);
+                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                if(node==NULL){
+                    printf("Error type 1 at Line %d: undeclared variable %s\n", root->first_line, sym.name);
+                }
+                else if(node->symbol.kind==VARIABLEE){
+                    root->type = node->symbol.prop.sym_type;
+                }
+                else if(node->symbol.kind==STRUCTT){
+                    printf("Error type 7 at Line %d: the operation is invalid\n", root->first_line);
+                }
+                else assert(0);
+            }
+            else if(strcmp(root->first_child->name, "INT")==0){
+                root->type = (Type*)malloc(sizeof(Type));
+                root->type->kind = BASEE;
+                root->type->type.base = INTT;
+            }
+            else if(strcmp(root->first_child->name, "FLOAT")==0){
+                root->type = (Type*)malloc(sizeof(Type));
+                root->type->kind = BASEE;
+                root->type->type.base = FLOATT;
+            }
+            else assert(0);
+        }
+        else if(root->cnt_child==2){
+            if(strcmp(root->first_child->name, "MINUS")==0){ // Exp -> MINUS Exp
+                if(child_of_no(2, root)->type->kind==BASEE){
+                    root->type = child_of_no(2, root)->type;
+                }
+                else printf("Error type 7 at Line %d: the operation is invalid\n", root->first_line);
+            }
+            else if(strcmp(root->first_child->name, "NOT")==0){
+                if(child_of_no(2, root)->type->kind==BASEE && child_of_no(2, root)->type->type.base==INTT){
+                    root->type = child_of_no(2, root)->type;
+                }
+                else printf("Error type 7 at Line %d: the operation is invalid\n", root->first_line);
+            }
+            else assert(0);
+        }
+        else if(root->cnt_child==3){
+            if(strcmp(child_of_no(3, root)->name, "Exp")==0 && strcmp(child_of_no(3, root)->name, "Exp")==0){ // Exp -> Exp OP Exp
+                if(strcmp(child_of_no(2, root)->name, "ASSIGNOP")!=0){
+                    struct tree_node* lch = child_of_no(1, root);
+                    struct tree_node* rch = child_of_no(3, root);
+                    if(lch->type->kind==BASEE && rch->type->kind==BASEE && lch->type->type.base==rch->type->type.base){
+                        root->type = lch->type;
+                    }
+                    else{
+                        printf("Error type 7 at Line %d: the operation is invalid\n", root->first_line);
+                    }
+                }
+                else{
+                    struct tree_node* lch = child_of_no(1, root);
+                    struct tree_node* rch = child_of_no(3, root);
+
+                    if(lch->type && rch->type && TypeMatch(lch->type, rch->type)==0){
+                        printf("Error type 5 at Line %d: the operation is invalid\n", root->first_line);
+                    }
+                }
+            }
+            else if(strcmp(root->first_child->name, "LP")==0){ // Exp -> LP Exp RP
+                root->type = root->first_child->type;
+            }
+            else if(strcmp(root->first_child->name, "ID")==0){ // Exp -> ID LP RP
+                Symbol sym;
+                strcpy(sym.name, root->first_child->compos.id);
+                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                if(node==NULL){
+                    printf("Error type 2 at Line %d: undeclared function %s\n", root->first_line, sym.name);
+                }
+                else if(node->symbol.kind == FUNCTIONN){
+                    root->type = node->symbol.prop.sym_func->retn;
+                }
+                else{
+                    printf("Error type 11 at Line %d: %s is not a function\n", root->first_line, sym.name);
+                }
+            }
+            else if(strcmp(root->first_child->name, "Exp")==0){ // Exp -> Exp DOT ID
+                Type* type_struct = root->first_child->type;
+                if(type_struct->kind!=STRUCTT){
+                    printf("Error type 13 at Line %d: %s is not a structure\n", root->first_line, child_of_no(3, root)->compos.id);
+                    return;
+                }
+                char* fld = child_of_no(3, root)->compos.id;
+                Field* type_fld = HasFld(type_struct->type.struc, fld);
+                if(type_fld==NULL){
+                    printf("Error type 14 at Line %d: structure doesn't have fild %s\n", root->first_line, fld);
+                }
+                else root->type = type_fld->type_field;
+            }
+            else assert(0);
+        }
+        else if(root->cnt_child==4){
+            if(strcmp(root->first_child->name, "ID")==0){ // Exp -> ID LP Args RP
+                Symbol sym;
+                strcpy(sym.name, root->first_child->compos.id);
+                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                if(node==NULL){
+                    printf("Error type 2 at Line %d: undeclared function %s\n", root->first_line, sym.name);
+                }
+                else if(node->symbol.kind == FUNCTIONN){
+                    Field* para = node->symbol.prop.sym_func->Argv;
+                    struct tree_node* arg = child_of_no(3, root);
+
+                    while(para!=NULL && arg->cnt_child==3 && TypeMatch(para->type_field, arg->first_child->type)){
+                        para = para->nxt;
+                        arg = child_of_no(3, arg);
+                    }
+
+                    if(para==NULL && arg->cnt_child==1){
+                        root->type = node->symbol.prop.sym_func->retn;
+                    }
+                    else printf("Error type 9 at Line %d: parameters are not matched\n", root->first_line);
+                }
+                else{
+                    printf("Error type 11 at Line %d: %s is not a function\n", root->first_line, sym.name);
+                }
+            }
+            else if(strcmp(root->first_child->name, "Exp")==0){ // Exp -> Exp LB Exp RB
+                if(root->first_child->type->kind != ARRAYY){
+                    printf("Error type 10 at Line %d: no array\n", root->first_line);
+                }
+                else{
+                    Type* type_idx = child_of_no(3, root)->type;
+                    if(type_idx->kind!=BASEE || type_idx->type.base!=INTT){
+                        printf("Error type 10 at Line %d: index is not int\n", root->first_line);
+                    }
+                    else root->type = root->first_child->type->type.array.type_ele;
+                }
+            }
+        }
+        else {
+            printf("%s %d\n", root->name, root->cnt_child);
+            assert(0);
+        }
+
+
+        if(strcmp(root->father->first_child->name, "RETURN")==0){
+            struct tree_node* tmp = root;
+            while(strcmp(tmp->name, "ExtDef")!=0) tmp = tmp->father;
+            if(!TypeMatch(tmp->first_child->type, root->type)){
+                printf("Error type 8 at Line %d: return type does not match\n", root->first_line);
+            }
+        }
+    }
+    
+    Insert(root);
 
     // printf("%s out\n", root->name);
 
@@ -169,8 +322,12 @@ void Insert(struct tree_node* cur){
         // }
         // printf("\n");
 
-        if(!Hash_Find(&Hash_table, sym)){
+        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        if(node==NULL || node->symbol.kind==FUNCTIONN){
             Hash_Add(&Hash_table, sym);
+        }
+        else{
+            printf("Error type 16 at Line %d: name of structure %s is repeated\n", cur->first_line, cur->compos.id);
         }
     }
     else if(strcmp(cur->father->name, "FunDec")==0){
@@ -219,16 +376,19 @@ void Insert(struct tree_node* cur){
         //     para = para->nxt;
         // }
         // printf("\n");
-
-        if(!Hash_Find(&Hash_table, sym)){
+        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        if(node==NULL || node->symbol.kind!=FUNCTIONN){
             Hash_Add(&Hash_table, sym);
+        }
+        else{
+            printf("Error type 4 at Line %d: function %s has been declared\n", cur->first_line, cur->compos.id);
         }
     }
     else if(strcmp(cur->father->name, "VarDec")==0){
         sym.kind = VARIABLEE;
 
         // declare a variable
-        if(cur->father->brother==NULL){
+        if(cur->father->brother==NULL || strcmp(cur->father->brother->name, "LB")!=0){
             while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
             sym.prop.sym_type = cur->father->first_child->type;
         }
@@ -262,74 +422,78 @@ void Insert(struct tree_node* cur){
 
         // printf("varialbe %d \n", sym.prop.sym_type->kind);
 
-        if(!Hash_Find(&Hash_table, sym)){
+        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        if(node==NULL || node->symbol.kind==FUNCTIONN){
             Hash_Add(&Hash_table, sym);
         }
-    }
-}
-
-
-void Check_1(struct tree_node* cur){
-    if(strcmp(cur->name, "ID")!=0) return;
-
-    Symbol sym;
-    sym.kind = VARIABLEE;
-    strcpy(sym.name, cur->compos.id);
-
-    if(strcmp(cur->father->name, "Exp")==0 && cur->father->cnt_child==1){
-        if(!Hash_Find(&Hash_table, sym)){
-            printf("Error type 1 at Line %d: undeclared variable %s\n", cur->first_line, cur->compos.id);
-            return;
-        }
-    }
-}
-
-void Check_2(struct tree_node* cur){
-    if(strcmp(cur->name, "ID")!=0) return;
-
-    Symbol sym;
-    sym.kind = FUNCTIONN;
-    strcpy(sym.name, cur->compos.id);
-
-    if(strcmp(cur->father->name, "Exp")==0 && cur->brother!=NULL && strcmp(cur->brother->name, "LP")==0){
-        if(!Hash_Find(&Hash_table, sym)){
-            printf("Error type 2 at Line %d: undeclared function %s\n", cur->first_line, cur->compos.id);
-            return;
-        }
-    }
-}
-
-void Check_3(struct tree_node* cur){
-    if(strcmp(cur->name, "ID")!=0) return;
-
-    Symbol sym;
-    sym.kind = VARIABLEE;
-    strcpy(sym.name, cur->compos.id);
-
-    if(strcmp(cur->father->name, "VarDec")==0){
-        int res = Hash_Find(&Hash_table, sym);
-        if(res==1 || res==3){
+        else{
             printf("Error type 3 at Line %d: varialbe %s has been declared\n", cur->first_line, cur->compos.id);
-            return;
         }
     }
 }
 
-void Check_4(struct tree_node* cur){
-    if(strcmp(cur->name, "ID")!=0) return;
 
-    Symbol sym;
-    sym.kind = FUNCTIONN;
-    strcpy(sym.name, cur->compos.id);
+// void Check_1(struct tree_node* cur){
+//     if(strcmp(cur->name, "ID")!=0) return;
 
-    if(strcmp(cur->father->name, "FunDec")==0){
-        int res = Hash_Find(&Hash_table, sym);
-        if(res==4){
-            printf("Error type 4 at Line %d: function %s has been declared\n", cur->first_line, cur->compos.id);
-            return;
-        }
-    }
-}
+//     Symbol sym;
+//     sym.kind = VARIABLEE;
+//     strcpy(sym.name, cur->compos.id);
+
+//     if(strcmp(cur->father->name, "Exp")==0 && cur->father->cnt_child==1){
+//         if(!Hash_Find(&Hash_table, sym)){
+//             printf("Error type 1 at Line %d: undeclared variable %s\n", cur->first_line, cur->compos.id);
+//             return;
+//         }
+//     }
+// }
+
+// void Check_2(struct tree_node* cur){
+//     if(strcmp(cur->name, "ID")!=0) return;
+
+//     Symbol sym;
+//     sym.kind = FUNCTIONN;
+//     strcpy(sym.name, cur->compos.id);
+
+//     if(strcmp(cur->father->name, "Exp")==0 && cur->brother!=NULL && strcmp(cur->brother->name, "LP")==0){
+//         if(!Hash_Find(&Hash_table, sym)){
+//             printf("Error type 2 at Line %d: undeclared function %s\n", cur->first_line, cur->compos.id);
+//             return;
+//         }
+//     }
+// }
+
+// void Check_3(struct tree_node* cur){
+//     if(strcmp(cur->name, "ID")!=0) return;
+
+//     Symbol sym;
+//     sym.kind = VARIABLEE;
+//     strcpy(sym.name, cur->compos.id);
+
+//     if(strcmp(cur->father->name, "VarDec")==0){
+//         int res = Hash_Find(&Hash_table, sym);
+//         if(res==1 || res==3){
+//             printf("Error type 3 at Line %d: varialbe %s has been declared\n", cur->first_line, cur->compos.id);
+//             return;
+//         }
+//     }
+// }
+
+// void Check_4(struct tree_node* cur){
+//     if(strcmp(cur->name, "ID")!=0) return;
+
+//     Symbol sym;
+//     sym.kind = FUNCTIONN;
+//     strcpy(sym.name, cur->compos.id);
+
+//     if(strcmp(cur->father->name, "FunDec")==0){
+//         int res = Hash_Find(&Hash_table, sym);
+//         if(res==4){
+//             printf("Error type 4 at Line %d: function %s has been declared\n", cur->first_line, cur->compos.id);
+//             return;
+//         }
+//     }
+// }
 
 void analyse(struct tree_node* root){
     if(root == NULL) return;

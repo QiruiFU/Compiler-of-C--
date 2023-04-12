@@ -17,6 +17,6 @@ HashTable Hash_table;
 
 unsigned int Hash_func(char* str);
 void Hash_Add(HashTable* table, Symbol sym);
-int Hash_Find(HashTable* table, Symbol sym);
+HashTableNode* Hash_Find(HashTable* table, Symbol sym);
 
 #endif

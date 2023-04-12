@@ -31,17 +31,14 @@ void Hash_Add(HashTable* table, Symbol sym){
     }
 }
 
-int Hash_Find(HashTable* table, Symbol sym){
+HashTableNode* Hash_Find(HashTable* table, Symbol sym){
     unsigned int val = Hash_func(sym.name);
     HashTableNode* cur = table->table[val];
     while(cur != NULL){
         if(strcmp(cur->symbol.name, sym.name)==0){
-            if(cur->symbol.kind == VARIABLEE && sym.kind == VARIABLEE) return 1;
-            else if(cur->symbol.kind == VARIABLEE && sym.kind == STRUCTT) return 2;
-            else if(cur->symbol.kind == STRUCTT && sym.kind == VARIABLEE) return 3;
-            else if(cur->symbol.kind == FUNCTIONN && sym.kind == FUNCTIONN) return 4;
+            return cur;
         }
         cur = cur->nxt;
     }
-    return 0;
+    return NULL;
 }

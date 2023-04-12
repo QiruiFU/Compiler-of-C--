@@ -1,3 +1,13 @@
-int main(){
-    float a[2][3][4];
+struct position
+{
+    float x,y;
+};
+
+int main()
+{
+    struct position p;
+    if(p.n==3.4)
+    {
+        return 0;
+    }
 }

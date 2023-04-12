@@ -47,4 +47,7 @@ typedef struct{
     }prop;
 }Symbol;
 
+int TypeMatch(Type* type_a, Type* type_b);
+Field* HasFld(Field* fld, char* name);
+
 #endif

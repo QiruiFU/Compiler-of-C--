@@ -25,6 +25,7 @@ struct tree_node{
 struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node* children[20]);
 void print_tree(struct tree_node* root, int depth);
 void analyse(struct tree_node* root);
-void GetType(struct tree_node* root);
+void DFS(struct tree_node* root);
+void Insert(struct tree_node* cur);
 
 #endif

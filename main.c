@@ -26,9 +26,9 @@ int main(int argc, char** argv){
 
     if(cnt_False == 0){
         print_tree(ROOT, 0);
-        GetType(ROOT);
-        printf("Get Type finished\n");
-        analyse(ROOT);
+        // GetType(ROOT);
+        // printf("Get Type finished\n");
+        DFS(ROOT);
     }
 
     return 0;
