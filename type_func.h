@@ -16,26 +16,22 @@ struct Type_def{
             struct Type_def* type_ele;
             int size;
         }array;
-        struct{
-            char* name;
-            struct Type_def* type_field;
-            struct Field_def* nxt; 
-        }struc;
+        struct Field_def* struc;
     }type;
 };
 typedef struct Type_def Type;
 
 struct Field_def{
-    char* name;
+    char name[20];
     struct Type_def* type_field;
     struct Field_def* nxt; 
 }; // 结构体的一个域
 typedef struct Field_def Field;
 
 typedef struct{
-    Type retn;
+    Type* retn;
     int Argc_cnt;
-    Type* Argv;
+    Field* Argv;
 }Func;
 
 #define VARIABLEE 0
@@ -46,8 +42,8 @@ typedef struct{
     char name[50];
     int kind;
     union{
-        Type sym_type;
-        Func sym_func;
+        Type* sym_type;
+        Func* sym_func;
     }prop;
 }Symbol;
 

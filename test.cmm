@@ -1,12 +1,9 @@
-int f(int a, int b){
-    return a + b;
-}
+struct node{
+    int p;
+};
 
-int f(int a){
-    return x * 2;
-}
+int k;
 
-int main()
-{
-    int i = 0;
+float func(int q){
+    q = 1 ;
 }

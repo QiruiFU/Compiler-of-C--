@@ -67,6 +67,88 @@ struct tree_node* child_of_no(int x, struct tree_node* root){
     return cur;
 }
 
+void GetType(struct tree_node* root){
+    if(root==NULL) return;
+
+
+    struct tree_node* cur = root->first_child;
+    while(cur!=NULL){
+        GetType(cur);
+        cur = cur->brother;
+    }
+
+    // printf("%s in\n", root->name);
+
+    if(strcmp(root->name, "Specifier")==0){
+        root->type = root->first_child->type;
+    }
+    else if(strcmp(root->name, "TYPE")==0){
+        root->type = (Type*)malloc(sizeof(Type));
+        root->type->kind = BASEE;
+        if(strcmp(root->compos.id, "int")==0){
+            root->type->type.base = INTT;
+        }
+        else if(strcmp(root->compos.id, "float")==0) root->type->type.base = FLOATT;
+        else assert(0);
+    }
+    else if(strcmp(root->name, "StructSpecifier")==0){
+        if(root->cnt_child==5) root->type = child_of_no(4, root)->type;
+        else if(root->cnt_child==2) root->type = child_of_no(2, root)->type;
+        else assert(0);
+        // TODO : OptTag may be empty
+    }
+    else if(strcmp(root->name, "DefList")==0 && strcmp(root->father->name, "DefList")!=0){
+        root->type = (Type*)malloc(sizeof(Type));
+        root->type->kind = STRUCTT;
+        Field* tail = NULL;
+        struct tree_node* cur = root; 
+
+        while(1){
+            if(tail==NULL){
+                root->type->type.struc = cur->first_child->type->type.struc;
+                tail = root->type->type.struc;
+                while(tail->nxt!=NULL) tail = tail->nxt;
+            }
+            else{
+                tail-> nxt = cur->first_child->type->type.struc;
+                while(tail->nxt!=NULL) tail = tail->nxt;
+            }
+
+            if(cur->cnt_child==1) break;
+            else cur = child_of_no(2, cur);
+        }
+    }
+    else if(strcmp(root->name, "Def")==0){
+        root->type = (Type*)malloc(sizeof(Type));
+        root->type->kind = STRUCTT;
+
+        struct tree_node* Dec = child_of_no(2, root); // DecList
+        Field* tail = NULL;
+        while(1){
+            Field* new_fild = (Field*)malloc(sizeof(Field));
+            new_fild->nxt = NULL;
+            new_fild->type_field = root->first_child->type;
+            struct tree_node* get_name = Dec;
+            while(strcmp(get_name->name, "ID")!=0) get_name = get_name->first_child;
+            strcpy(new_fild->name, get_name->compos.id);
+            if(tail == NULL){
+                root->type->type.struc = new_fild;
+                tail = new_fild;
+            }
+            else{
+                tail->nxt = new_fild;
+                tail = tail->nxt;
+            }
+            if(Dec->cnt_child==1) break;
+            else Dec = child_of_no(3, Dec);
+        }
+    }
+
+    // printf("%s out\n", root->name);
+
+}
+
+
 void Insert(struct tree_node* cur){
     if(strcmp(cur->name, "ID")!=0) return;
 
@@ -77,14 +159,67 @@ void Insert(struct tree_node* cur){
         sym.kind = STRUCTT;
 
         // TODO: declare a struct 
+        sym.prop.sym_type = cur->father->father->type;
+
+        // printf("struct %s , ", sym.name);
+        // Field* now = sym.prop.sym_type->type.struc;
+        // while(now!=NULL){
+        //     printf("%d %s, ",now->type_field->type.base ,now->name);
+        //     now = now->nxt;
+        // }
+        // printf("\n");
+
         if(!Hash_Find(&Hash_table, sym)){
             Hash_Add(&Hash_table, sym);
         }
     }
     else if(strcmp(cur->father->name, "FunDec")==0){
+        cur = cur->father;
         sym.kind = FUNCTIONN;
         
         // TODO: declare a function
+        sym.prop.sym_func = (Func*)malloc(sizeof(Func));
+        sym.prop.sym_func->retn = cur->father->first_child->type;
+        sym.prop.sym_func->Argc_cnt = 0;
+        sym.prop.sym_func->Argv = NULL;
+
+        if(cur->cnt_child==4){ // ID LP VarList RP
+            struct tree_node* para = child_of_no(3, cur);
+            Field* tail = NULL;
+
+            while(1){
+                assert(strcmp(para->name, "VarList")==0);
+                sym.prop.sym_func->Argc_cnt++;
+                
+                Field* new_para = (Field*)malloc(sizeof(Field));
+                new_para->type_field = para->first_child->first_child->type;
+                new_para->nxt = NULL;
+
+                if(tail==NULL){
+                    tail = new_para;
+                    sym.prop.sym_func->Argv = new_para;
+                }
+                else{
+                    tail->nxt = new_para;
+                    tail = tail->nxt;
+                }
+
+                if(para->cnt_child == 1) break;
+                else para = child_of_no(3, para);
+            }
+        }
+
+        // printf("Func %s , ", sym.name);
+        // Func* now = sym.prop.sym_func;
+        // printf("return type %d, ", now->retn->type.base);
+        // // printf("paracnt %d\n", now->Argc_cnt);
+        // Field* para = now->Argv;
+        // while(para!=NULL){
+        //     printf("%d, ",para->type_field->type.base);
+        //     para = para->nxt;
+        // }
+        // printf("\n");
+
         if(!Hash_Find(&Hash_table, sym)){
             Hash_Add(&Hash_table, sym);
         }
@@ -93,11 +228,17 @@ void Insert(struct tree_node* cur){
         sym.kind = VARIABLEE;
 
         //TODO: declare a variable
+        while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
+        sym.prop.sym_type = cur->father->first_child->type;
+
+        // printf("varialbe %d \n", sym.prop.sym_type->kind);
+
         if(!Hash_Find(&Hash_table, sym)){
             Hash_Add(&Hash_table, sym);
         }
     }
 }
+
 
 void Check_1(struct tree_node* cur){
     if(strcmp(cur->name, "ID")!=0) return;
@@ -164,10 +305,10 @@ void Check_4(struct tree_node* cur){
 void analyse(struct tree_node* root){
     if(root == NULL) return;
 
-    Check_1(root);
-    Check_2(root);
-    Check_3(root);
-    Check_4(root);
+    // Check_1(root);
+    // Check_2(root);
+    // Check_3(root);
+    // Check_4(root);
     Insert(root);
 
     struct tree_node* cur = root->first_child;
