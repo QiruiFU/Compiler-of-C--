@@ -1,9 +1,3 @@
-struct node{
-    int p;
-};
-
-int k;
-
-float func(int q){
-    q = 1 ;
+int main(){
+    float a[2][3][4];
 }

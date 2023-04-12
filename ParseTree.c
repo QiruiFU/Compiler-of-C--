@@ -158,7 +158,7 @@ void Insert(struct tree_node* cur){
     if(strcmp(cur->father->name, "OptTag")==0){
         sym.kind = STRUCTT;
 
-        // TODO: declare a struct 
+        // declare a struct 
         sym.prop.sym_type = cur->father->father->type;
 
         // printf("struct %s , ", sym.name);
@@ -177,7 +177,7 @@ void Insert(struct tree_node* cur){
         cur = cur->father;
         sym.kind = FUNCTIONN;
         
-        // TODO: declare a function
+        // declare a function
         sym.prop.sym_func = (Func*)malloc(sizeof(Func));
         sym.prop.sym_func->retn = cur->father->first_child->type;
         sym.prop.sym_func->Argc_cnt = 0;
@@ -227,9 +227,38 @@ void Insert(struct tree_node* cur){
     else if(strcmp(cur->father->name, "VarDec")==0){
         sym.kind = VARIABLEE;
 
-        //TODO: declare a variable
-        while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
-        sym.prop.sym_type = cur->father->first_child->type;
+        // declare a variable
+        if(cur->father->brother==NULL){
+            while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
+            sym.prop.sym_type = cur->father->first_child->type;
+        }
+        else{
+            cur = cur->father;
+            sym.prop.sym_type = (Type*)malloc(sizeof(Type));
+            sym.prop.sym_type->kind = ARRAYY;
+            Type* tail = NULL;
+
+            while(strcmp(cur->father->name, "VarDec")==0){
+                Type* Dem = (Type*)malloc(sizeof(Type));
+                Dem->type.array.size = child_of_no(3, cur->father)->compos.val_int;
+                Dem->type.array.type_ele = NULL;
+                if(tail == NULL){
+                    tail = Dem;
+                    sym.prop.sym_type = Dem;
+                }
+                else{
+                    tail->type.array.type_ele = Dem;
+                    tail = Dem;
+                }
+                cur = cur->father;
+            }
+
+            while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
+            tail->type.array.type_ele = cur->father->first_child->type;
+
+            // printf("array %s , type %d , weishu %d\n", sym.name, tail->type.array.type_ele->type.base, weishu);
+        }
+
 
         // printf("varialbe %d \n", sym.prop.sym_type->kind);
 
