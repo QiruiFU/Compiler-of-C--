@@ -295,7 +295,7 @@ void DFS(struct tree_node* root){
                 else{
                     Type* type_idx = child_of_no(3, root)->type;
                     if(type_idx->kind!=BASEE || type_idx->type.base!=INTT){
-                        printf("Error type 10 at Line %d: index is not int\n", root->first_line);
+                        printf("Error type 12 at Line %d: index is not int\n", root->first_line);
                     }
                     else root->type = root->first_child->type->type.array.type_ele;
                 }

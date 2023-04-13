@@ -1,10 +1,5 @@
-struct node{
-    int x, y;
-};
-
-int main(){
-    struct node p;
-    if(p.n==2.5){
-        return 0;
-    }
+int main()
+{
+    int i[10];
+    i[1.5] = 10;
 }

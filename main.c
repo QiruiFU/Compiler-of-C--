@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     yyparse();
 
     if(cnt_False == 0){
-        print_tree(ROOT, 0);
+        // print_tree(ROOT, 0);
         // GetType(ROOT);
         // printf("Get Type finished\n");
         DFS(ROOT);
