@@ -98,7 +98,9 @@ void DFS(struct tree_node* root){
         // TODO : OptTag may be empty
     }
     else if(strcmp(root->name, "DefList")==0 && strcmp(root->father->name, "DefList")!=0){
-        root->type = (Type*)malloc(sizeof(Type));
+        if(root->type==NULL){
+            root->type = (Type*)malloc(sizeof(Type));
+        }
         root->type->kind = STRUCTT;
         Field* tail = NULL;
         struct tree_node* cur = root; 
@@ -141,6 +143,19 @@ void DFS(struct tree_node* root){
             }
             if(Dec->cnt_child==1) break;
             else Dec = child_of_no(3, Dec);
+        }
+    }
+    else if(strcmp(root->name, "Tag")==0){
+        Symbol sym;
+        strcpy(sym.name, root->first_child->compos.id);
+        sym.kind = STRUCTT;
+
+        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        if(node==NULL || node->symbol.kind!=STRUCTT){
+            printf("Error type 17 at Line %d: structure %s is undefined\n", root->first_line, sym.name);
+        }
+        else{
+            root->type = node->symbol.prop.sym_type;
         }
     }
     else if(strcmp(root->name, "Exp")==0){
@@ -229,7 +244,7 @@ void DFS(struct tree_node* root){
             else if(strcmp(root->first_child->name, "Exp")==0){ // Exp -> Exp DOT ID
                 Type* type_struct = root->first_child->type;
                 if(type_struct->kind!=STRUCTT){
-                    printf("Error type 13 at Line %d: %s is not a structure\n", root->first_line, child_of_no(3, root)->compos.id);
+                    printf("Error type 13 at Line %d: illegal use of \".\" \n", root->first_line);
                     return;
                 }
                 char* fld = child_of_no(3, root)->compos.id;
@@ -298,11 +313,13 @@ void DFS(struct tree_node* root){
     Insert(root);
 
     // printf("%s out\n", root->name);
+    
 
 }
 
 
-void Insert(struct tree_node* cur){
+void Insert(struct tree_node* root){
+    struct tree_node* cur = root;
     if(strcmp(cur->name, "ID")!=0) return;
 
     Symbol sym;
@@ -312,7 +329,10 @@ void Insert(struct tree_node* cur){
         sym.kind = STRUCTT;
 
         // declare a struct 
-        sym.prop.sym_type = cur->father->father->type;
+        struct tree_node* DefLst = cur->father->brother->brother;
+        DefLst->type = (Type*)malloc(sizeof(Type));
+        assert(strcmp(DefLst->name, "DefList")==0);
+        sym.prop.sym_type = DefLst->type;
 
         // printf("struct %s , ", sym.name);
         // Field* now = sym.prop.sym_type->type.struc;
@@ -386,7 +406,6 @@ void Insert(struct tree_node* cur){
     }
     else if(strcmp(cur->father->name, "VarDec")==0){
         sym.kind = VARIABLEE;
-
         // declare a variable
         if(cur->father->brother==NULL || strcmp(cur->father->brother->name, "LB")!=0){
             while(strcmp(cur->father->first_child->name, "Specifier")!=0) cur = cur->father;
@@ -396,10 +415,12 @@ void Insert(struct tree_node* cur){
             cur = cur->father;
             sym.prop.sym_type = (Type*)malloc(sizeof(Type));
             sym.prop.sym_type->kind = ARRAYY;
+
             Type* tail = NULL;
 
             while(strcmp(cur->father->name, "VarDec")==0){
                 Type* Dem = (Type*)malloc(sizeof(Type));
+                Dem->kind = ARRAYY;
                 Dem->type.array.size = child_of_no(3, cur->father)->compos.val_int;
                 Dem->type.array.type_ele = NULL;
                 if(tail == NULL){

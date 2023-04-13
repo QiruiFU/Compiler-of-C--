@@ -33,6 +33,6 @@ int TypeMatch(Type* type_a, Type* type_b){
 
 Field* HasFld(Field* fld, char* name){
     Field* res = fld;
-    while(res==NULL && strcmp(res->name, name)!=0) res = res->nxt;
+    while(res!=NULL && strcmp(res->name, name)!=0) res = res->nxt;
     return res;
 }
