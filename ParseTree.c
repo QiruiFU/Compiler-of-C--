@@ -257,7 +257,13 @@ void DFS(struct tree_node* root){
                 if(type_fld==NULL){
                     printf("Error type 14 at Line %d: structure doesn't have fild %s\n", root->first_line, fld);
                 }
-                else root->type = type_fld->type_field;
+                else{
+                    Symbol sym;
+                    strcpy(sym.name, child_of_no(3, root)->compos.id);
+                    HashTableNode *node = Hash_Find(&Hash_table, sym);
+                    assert(node!=NULL);
+                    root->type = node->symbol.prop.sym_type;
+                }
             }
             else assert(0);
         }
@@ -312,6 +318,14 @@ void DFS(struct tree_node* root){
             while(strcmp(tmp->name, "ExtDef")!=0) tmp = tmp->father;
             if(!TypeMatch(tmp->first_child->type, root->type)){
                 printf("Error type 8 at Line %d: return type does not match\n", root->first_line);
+            }
+        }
+
+        if(strcmp(root->father->name, "Dec")==0){
+            struct tree_node* check = root->father->father->father->first_child;
+            assert(strcmp(check->name, "Specifier")==0);
+            if(!TypeMatch(check->type, root->type)){
+                printf("Error type 5 at Line %d: the operation is invalid\n", root->first_line);
             }
         }
     }
@@ -397,24 +411,27 @@ void Insert(struct tree_node* root){
     }
     else if(strcmp(cur->father->name, "VarDec")==0){
         struct tree_node* check = cur;
+        int judge = VARIABLEE;
         while(check!=NULL && strcmp(check->name, "StructSpecifier")!=0) check = check->father;
+
         if(check!=NULL){ // a field of a struct
-            Symbol sym;
-            sym.kind = VARIABLEE;
-            strcpy(sym.name, cur->compos.id);
+            judge = STRUCTT;
+            // Symbol sym;
+            // sym.kind = VARIABLEE;
+            // strcpy(sym.name, cur->compos.id);
 
-            HashTableNode* node = Hash_Find(&Hash_table, sym);
-            if(node==NULL || node->symbol.kind==FUNCTIONN){
-                Hash_Add(&Hash_table, sym);
-            }
-            else{
-                printf("Error type 15 at Line %d: field %s has been declared\n", cur->first_line, cur->compos.id);
-            }
+            // HashTableNode* node = Hash_Find(&Hash_table, sym);
+            // if(node==NULL || node->symbol.kind==FUNCTIONN){
+            //     Hash_Add(&Hash_table, sym);
+            // }
+            // else{
+            //     printf("Error type 15 at Line %d: field %s has been declared\n", cur->first_line, cur->compos.id);
+            // }
 
-            if(cur->father->brother!=NULL && strcmp(cur->father->brother->name, "ASSIGNOP")==0){
-                printf("Error type 15 at Line %d: initialize the field %s in declaration\n", cur->first_line, cur->compos.id);
-            }
-            return;
+            // if(cur->father->brother!=NULL && strcmp(cur->father->brother->name, "ASSIGNOP")==0){
+            //     printf("Error type 15 at Line %d: initialize the field %s in declaration\n", cur->first_line, cur->compos.id);
+            // }
+            // return;
         }
 
         sym.kind = VARIABLEE;
@@ -455,7 +472,16 @@ void Insert(struct tree_node* root){
             Hash_Add(&Hash_table, sym);
         }
         else{
-            printf("Error type 3 at Line %d: varialbe %s has been declared\n", cur->first_line, cur->compos.id);
+            if(judge==VARIABLEE){
+                printf("Error type 3 at Line %d: varialbe %s has been declared\n", cur->first_line, cur->compos.id);
+            }
+            else printf("Error type 15 at Line %d: field %s has been declared\n", cur->first_line, cur->compos.id);
         }
+
+        if(judge==STRUCTT && cur->father->brother!=NULL && strcmp(cur->father->brother->name, "ASSIGNOP")==0){
+            printf("Error type 15 at Line %d: initialize the field %s in declaration\n", cur->first_line, cur->compos.id);
+        }
+
+        root->type = sym.prop.sym_type;
     }
 }

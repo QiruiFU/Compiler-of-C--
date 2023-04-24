@@ -1,5 +1,15 @@
+struct point{
+    int a[10];
+    float b[10];
+};
+
+struct circle{
+    struct point C;
+    int r;
+};
+
 int main()
 {
-    int i[10];
-    i[1.5] = 10;
+    struct circle o1;
+    o1.C.b[10] = o1.C.b[4] + 4.5;
 }
