@@ -1,2 +1,6 @@
 *.log
+*.cmm
+*.ir
 parser
+irsim
+
