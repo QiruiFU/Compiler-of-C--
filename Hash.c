@@ -4,6 +4,11 @@
 #include<assert.h>
 #include<string.h>
 
+extern int vari_cnt;
+extern int func_cnt;
+extern int array_cnt;
+extern int label_cnt;
+
 unsigned int Hash_func(char* str){
     unsigned int val = 0, i;
     for(char* cur=str; *cur; cur++){
@@ -14,6 +19,27 @@ unsigned int Hash_func(char* str){
 }
 
 void Hash_Add(HashTable* table, Symbol sym){
+
+    switch(sym.kind){
+        case FUNCTIONN:
+            func_cnt++;
+            sym.rank = func_cnt;
+            break;
+        case VARIABLEE:
+            if(sym.prop.sym_type->kind==BASEE){
+                vari_cnt++;
+                sym.rank = vari_cnt;
+            }
+            else if(sym.prop.sym_type->kind==ARRAYY){
+                array_cnt++;
+                sym.rank = array_cnt;
+            }
+            else assert(0);
+            break;
+        default:
+            assert(0);
+    }
+
     unsigned int val = Hash_func(sym.name);
     HashTableNode* p = (HashTableNode*)malloc(sizeof(HashTableNode));
     p->symbol = sym;

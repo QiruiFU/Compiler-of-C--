@@ -20,7 +20,7 @@ struct Operand_def{
     union{
         int no_vari;
         // int no_add;
-        char name_func[20];
+        char name_func[20]; // not need to consider deep copy
         int no_array;
         int no_label;
         int val_const;

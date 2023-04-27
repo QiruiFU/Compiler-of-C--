@@ -2,191 +2,82 @@
 #include<stdlib.h>
 #include<string.h>
 #include<assert.h>
-#include "ParseTree.h"
-
-// extern int lineno;
-// extern int cnt_False;
-// extern int yydebug;
-// extern void yyrestart(FILE*);
-// extern int yyparse();
-
-struct tree_node* ROOT = NULL; // the root of the parse tree
-
-// int main(int argc, char** argv){
-//     if(argc <= 1) return 1;
-//     FILE* f = fopen(argv[1], "r");
-//     if (!f){
-//         perror(argv[1]);
-//         return 1;
-//     }
-
-//     yyrestart(f);
-//     // yydebug = 1;
-//     yyparse();
-
-//     if(cnt_False == 0){
-//         // print_tree(ROOT, 0);
-//         // GetType(ROOT);
-//         // printf("Get Type finished\n");
-//         DFS(ROOT);
-//     }
-
-//     return 0;
-// }
-
-
 #include "intercode.h"
+#include "ParseTree.h"
+#include "Hash.h"
+#include "translate.h"
+#include "type_func.h"
 
-InterCodeNode *CodeList;
+extern int lineno;
+extern int cnt_False;
+extern int yydebug;
+extern void yyrestart(FILE*);
+extern int yyparse();
 
-int main(int argc, char** argv){
-    FILE* fout = fopen(argv[1], "w");
-    if(!fout){
-        perror(argv[1]);
-        return 1;
-    }
+int vari_cnt = 0;
+int func_cnt = 0;
+int array_cnt = 0;
+int label_cnt = 0;
+
+InterCodeNode *CodeList = NULL;
+struct tree_node* ROOT = NULL; // the root of the parse tree
+extern HashTable Hash_table;
+
+Type iint; // global define of type int
+
+void initiate(){
+    iint.kind = BASEE;
+    iint.type.base = INTT;
+
+    Symbol sym_read;
+    sym_read.kind = FUNCTIONN;
+    strcpy(sym_read.name, "read");
+    sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
+    sym_read.prop.sym_func->Argc_cnt = 0;
+    sym_read.prop.sym_func->Argv = NULL;
+    sym_read.prop.sym_func->retn = &iint;
+
+    Symbol sym_write;
+    sym_write.kind = FUNCTIONN;
+    strcpy(sym_write.name, "write");
+    sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
+    sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
+    sym_write.prop.sym_func->Argc_cnt = 1;
+    sym_write.prop.sym_func->Argv->type_field = &iint;
+    sym_write.prop.sym_func->Argv->nxt = NULL;
+    sym_read.prop.sym_func->retn = NULL;
+
+    Hash_Add(&Hash_table, sym_read);
+    Hash_Add(&Hash_table, sym_write);
 
     CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
     CodeList->next = NULL;
+}
 
-    Operand op1, op2, op3;
-    int size;
-    char rel[3]=">";
+int main(int argc, char** argv){
+    if(argc != 3) return 1;
+    FILE* fin = fopen(argv[1], "r");
+    FILE* fout = fopen(argv[2], "w");
+    if (!fin){
+        perror(argv[1]);
+        return 1;
+    }
+    if(!fout){
+        perror(argv[2]);
+        return 1;
+    }
 
+    yyrestart(fin);
+    // yydebug = 1;
+    yyparse();
 
-    op1.kind = OP_FUNC;
-    strcpy(op1.u.name_func, "main");
-    Add_InterCode(CodeList, Gen_Code(FUNC, op1, op2, op3, size, rel));
+    if(cnt_False == 0){
+        print_tree(ROOT, 0);
+        initiate();
+        Check(ROOT);
+        Translate(ROOT);
+        Print_List(CodeList, fout);
+    }
 
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 1;
-    Add_InterCode(CodeList, Gen_Code(READ, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 10;
-    op2.kind = OP_VARI;
-    op2.u.no_vari = 1;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 2;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 0;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 10;
-    op2.kind = OP_VARI;
-    op2.u.no_vari = 2;
-    op3.kind = OP_LABEL;
-    op3.u.no_label = 1;
-    strcpy(rel, ">");
-    Add_InterCode(CodeList, Gen_Code(GOTO_COND, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 2;
-    Add_InterCode(CodeList, Gen_Code(GOTO, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 1;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 3;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 1;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 3;
-    Add_InterCode(CodeList, Gen_Code(WRITE, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 3;
-    Add_InterCode(CodeList, Gen_Code(GOTO, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 2;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 4;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 0;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 10;
-    op2.kind = OP_VARI;
-    op2.u.no_vari = 4;
-    op3.kind = OP_LABEL;
-    op3.u.no_label = 4;
-    strcpy(rel, "<");
-    Add_InterCode(CodeList, Gen_Code(GOTO_COND, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 5;
-    Add_InterCode(CodeList, Gen_Code(GOTO, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 4;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 5;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 1;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 6;
-    op2.kind = OP_CONST;
-    op2.u.no_vari = 0;
-    op3.kind = OP_VARI;
-    op3.u.no_label = 5;
-    Add_InterCode(CodeList, Gen_Code(SUB, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 6;
-    Add_InterCode(CodeList, Gen_Code(WRITE, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 6;
-    Add_InterCode(CodeList, Gen_Code(GOTO, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 5;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 7;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 0;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 7;
-    Add_InterCode(CodeList, Gen_Code(WRITE, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 6;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_LABEL;
-    op1.u.no_label = 3;
-    Add_InterCode(CodeList, Gen_Code(LABEL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 8;
-    op2.kind = OP_CONST;
-    op2.u.val_const = 0;
-    Add_InterCode(CodeList, Gen_Code(ASSIGN_VAL2VAL, op1, op2, op3, size, rel));
-
-    op1.kind = OP_VARI;
-    op1.u.no_vari = 8;
-    Add_InterCode(CodeList, Gen_Code(RETURN, op1, op2, op3, size, rel));
-
-    Print_List(CodeList, fout);
-    fclose(fout);
     return 0;
 }

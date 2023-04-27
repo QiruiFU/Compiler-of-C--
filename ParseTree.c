@@ -67,12 +67,21 @@ struct tree_node* child_of_no(int x, struct tree_node* root){
     return cur;
 }
 
-void DFS(struct tree_node* root){
+void Check(struct tree_node* root){
     if(root==NULL) return;
+    if(root->anaylised == 1) return;
+
+    root->anaylised = 1;
+
+
+    if(strcmp(root->name, "ID")==0 && strcmp(root->father->name, "FunDec")==0){
+        struct tree_node *temp = root->brother->brother;
+        if(strcmp(temp->name, "VarList")==0) Check(temp);
+    }
 
     struct tree_node* curr = root->first_child;
     while(curr!=NULL){
-        DFS(curr);
+        Check(curr);
         curr = curr->brother;
     }
 
@@ -276,18 +285,22 @@ void DFS(struct tree_node* root){
                     printf("Error type 2 at Line %d: undeclared function %s\n", root->first_line, sym.name);
                 }
                 else if(node->symbol.kind == FUNCTIONN){
-                    Field* para = node->symbol.prop.sym_func->Argv;
-                    struct tree_node* arg = child_of_no(3, root);
+                    if(strcmp(node->symbol.name, "write")!=0){
 
-                    while(para!=NULL && arg->cnt_child==3 && TypeMatch(para->type_field, arg->first_child->type)){
-                        para = para->nxt;
-                        arg = child_of_no(3, arg);
-                    }
+                        Field* para = node->symbol.prop.sym_func->Argv;
+                        struct tree_node* arg = child_of_no(3, root);
 
-                    if(para==NULL && arg->cnt_child==1){
-                        root->type = node->symbol.prop.sym_func->retn;
+
+                        while(para->nxt!=NULL && arg->cnt_child==3 && TypeMatch(para->type_field, arg->first_child->type)){
+                            para = para->nxt;
+                            arg = child_of_no(3, arg);
+                        }
+    
+                        if(para->nxt==NULL && arg->cnt_child==1 && TypeMatch(para->type_field, arg->first_child->type)){
+                            root->type = node->symbol.prop.sym_func->retn;
+                        }
+                        else printf("Error type 9 at Line %d: parameters are not matched\n", root->first_line);
                     }
-                    else printf("Error type 9 at Line %d: parameters are not matched\n", root->first_line);
                 }
                 else{
                     printf("Error type 11 at Line %d: %s is not a function\n", root->first_line, sym.name);
@@ -308,7 +321,6 @@ void DFS(struct tree_node* root){
             }
         }
         else {
-            printf("%s %d\n", root->name, root->cnt_child);
             assert(0);
         }
 
@@ -322,12 +334,17 @@ void DFS(struct tree_node* root){
         }
 
         if(strcmp(root->father->name, "Dec")==0){
-            struct tree_node* check = root->father->father->father->first_child;
+            struct tree_node* check = root;
+            while(strcmp(check->name, "Def")!=0) check = check->father;
+            check = check->first_child;
             assert(strcmp(check->name, "Specifier")==0);
             if(!TypeMatch(check->type, root->type)){
                 printf("Error type 5 at Line %d: the operation is invalid\n", root->first_line);
             }
         }
+    }
+    else if(strcmp(root->name, "ParamDec")==0){
+        root->type = root->first_child->type;
     }
     
     Insert(root);
@@ -401,6 +418,8 @@ void Insert(struct tree_node* root){
                 else para = child_of_no(3, para);
             }
         };
+
+
         HashTableNode* node = Hash_Find(&Hash_table, sym);
         if(node==NULL || node->symbol.kind!=FUNCTIONN){
             Hash_Add(&Hash_table, sym);

@@ -135,7 +135,7 @@ void Print_Code(InterCode code, FILE* f){
             break;
         case CALL:
             Print_OP(code.u.op1, f);
-            fprintf(f, " :== CALL ");
+            fprintf(f, " := CALL ");
             Print_OP(code.u.op2, f);
             fprintf(f, "\n");
             break;

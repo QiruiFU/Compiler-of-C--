@@ -45,6 +45,7 @@ typedef struct{
         Type* sym_type;
         Func* sym_func;
     }prop;
+    int rank;
 }Symbol;
 
 int TypeMatch(Type* type_a, Type* type_b);
