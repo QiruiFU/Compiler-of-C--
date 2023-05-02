@@ -22,13 +22,16 @@ void Print_OP(Operand op, FILE *f){
             fprintf(f, "%s", op.u.name_func);
             break;
         case OP_ARRAY:
-            fprintf(f, "array%d", op.u.no_array);
+            fprintf(f, "&array%d", op.u.no_array);
             break;
         case OP_LABEL:
             fprintf(f, "label%d", op.u.no_label);
             break;
         case OP_CONST:
             fprintf(f, "#%d", op.u.val_const);
+            break;
+        case OP_ADD:
+            fprintf(f, "addr%d", op.u.no_add);
             break;
         default:
             assert(0);
@@ -126,7 +129,7 @@ void Print_Code(InterCode code, FILE* f){
         case DEC:
             fprintf(f, "DEC ");
             Print_OP(code.u.op1, f);
-            fprintf(f, " [%d]\n", code.u.size);
+            fprintf(f, " %d\n", code.u.size);
             break;
         case ARG:
             fprintf(f, "ARG ");

@@ -9,17 +9,16 @@
 struct Operand_def{
     enum{
         OP_VARI,
-        // OP_ADD,
+        OP_ADD,
         OP_FUNC,
         OP_ARRAY,
         OP_LABEL,
-        // OP_TEMP,
         OP_CONST
     } kind;
 
     union{
         int no_vari;
-        // int no_add;
+        int no_add;
         char name_func[20]; // not need to consider deep copy
         int no_array;
         int no_label;

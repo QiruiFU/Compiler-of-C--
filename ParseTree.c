@@ -295,7 +295,7 @@ void Check(struct tree_node* root){
                             para = para->nxt;
                             arg = child_of_no(3, arg);
                         }
-    
+
                         if(para->nxt==NULL && arg->cnt_child==1 && TypeMatch(para->type_field, arg->first_child->type)){
                             root->type = node->symbol.prop.sym_func->retn;
                         }
@@ -344,7 +344,7 @@ void Check(struct tree_node* root){
         }
     }
     else if(strcmp(root->name, "ParamDec")==0){
-        root->type = root->first_child->type;
+        root->type = child_of_no(2, root)->type;
     }
     
     Insert(root);
@@ -402,7 +402,7 @@ void Insert(struct tree_node* root){
                 sym.prop.sym_func->Argc_cnt++;
                 
                 Field* new_para = (Field*)malloc(sizeof(Field));
-                new_para->type_field = para->first_child->first_child->type;
+                new_para->type_field = child_of_no(2, para->first_child)->type;
                 new_para->nxt = NULL;
 
                 if(tail==NULL){
@@ -413,6 +413,7 @@ void Insert(struct tree_node* root){
                     tail->nxt = new_para;
                     tail = tail->nxt;
                 }
+
 
                 if(para->cnt_child == 1) break;
                 else para = child_of_no(3, para);
@@ -501,6 +502,6 @@ void Insert(struct tree_node* root){
             printf("Error type 15 at Line %d: initialize the field %s in declaration\n", cur->first_line, cur->compos.id);
         }
 
-        root->type = sym.prop.sym_type;
+        root->type = cur->type = sym.prop.sym_type;
     }
 }

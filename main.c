@@ -18,6 +18,7 @@ int vari_cnt = 0;
 int func_cnt = 0;
 int array_cnt = 0;
 int label_cnt = 0;
+int add_cnt = 0;
 
 InterCodeNode *CodeList = NULL;
 struct tree_node* ROOT = NULL; // the root of the parse tree
@@ -72,7 +73,7 @@ int main(int argc, char** argv){
     yyparse();
 
     if(cnt_False == 0){
-        print_tree(ROOT, 0);
+        // print_tree(ROOT, 0);
         initiate();
         Check(ROOT);
         Translate(ROOT);
