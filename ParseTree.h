@@ -29,5 +29,6 @@ void print_tree(struct tree_node* root, int depth);
 void Check(struct tree_node* root); // 语义检查
 void Insert(struct tree_node* cur);
 struct tree_node* child_of_no(int x, struct tree_node* root);
+int ExistStruct(struct tree_node *root);
 
 #endif

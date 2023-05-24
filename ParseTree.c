@@ -505,3 +505,17 @@ void Insert(struct tree_node* root){
         root->type = cur->type = sym.prop.sym_type;
     }
 }
+
+
+int ExistStruct(struct tree_node *root){
+    if(strcmp(root->name, "STRUCT")==0){
+        return 1;
+    }
+
+    struct tree_node *cur = root->first_child;
+    while(cur!=NULL){
+        if(ExistStruct(cur)==1) return 1;
+        else cur = cur->brother;
+    }
+    return 0;
+}

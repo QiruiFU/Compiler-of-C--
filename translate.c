@@ -56,7 +56,6 @@ void Trans_Exp(struct tree_node *root, Operand opde){
             Symbol sym;
             strcpy(sym.name, root->first_child->compos.id);
             HashTableNode *cur = Hash_Find(&Hash_table, sym);
-            // TODO: guarante variable
             op2.kind = OP_VARI;
             assert(cur!=NULL);
             op2.u.no_vari = cur->symbol.rank;
@@ -458,7 +457,7 @@ void Trans_VarDec(struct tree_node *root, int source, int size){
             Add_InterCode(CodeList, Gen_Code(PARAM, t1, empty, empty, size, rel));
         }
         else{
-            //TODO : para is a array
+            //TAG : para is a array
             struct tree_node *find_id = root;
             while(strcmp(find_id->name, "ID")!=0) find_id = find_id->first_child;
             Operand t1 = new_add();

@@ -1,21 +1,22 @@
-int add(int temp[2]){
-    return temp[0] + temp[1];
+int add(int temp[1000], int n){
+    int i = 0;
+    int ansadd = 0;
+    while(i<n){
+        ansadd = ansadd + temp[i];
+        i = i+1;
+    }
+    return ansadd;
 }
 
 int main(){
-    int op[2];
-    int r[1][2];
-    int i = 0, j = 0;
-
-    while(i<2){
-        while(j<2){
-            op[j] = i+j;
-            j = j+1;
-        }
-        r[0][i] = add(op);
-        write(r[0][i]);
-        i = i+1;
-        j = 0;
+    int a[100];
+    int j=0;
+    int tot = 0;
+    while(j<100){
+        a[j] = j+1;
+        j=j+1;
     }
+    tot = add(a, 100);
+    write(tot);
     return 0;
 }
