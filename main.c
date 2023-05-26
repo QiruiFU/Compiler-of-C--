@@ -7,6 +7,7 @@
 #include "Hash.h"
 #include "translate.h"
 #include "type_func.h"
+#include "targetcode.h"
 
 extern int lineno;
 extern int cnt_False;
@@ -84,7 +85,10 @@ int main(int argc, char** argv){
         }
         Check(ROOT);
         Translate(ROOT);
-        Print_List(CodeList, fout);
+        
+        // Print_List(CodeList, fout);
+    
+        TgtCodeList(CodeList, fout);
         fclose(fin);
         fclose(fout);
     }

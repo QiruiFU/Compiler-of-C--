@@ -66,7 +66,7 @@ typedef struct InterCodeNode_def InterCodeNode;
 
 void Add_InterCode(InterCodeNode* head, InterCode code);
 // void Print_OP(Operand* op, FILE* f);
-// void Print_Code(InterCode code, FILE* f);
+void Print_Code(InterCode code, FILE* f);
 void Print_List(InterCodeNode* head, FILE* f);
 InterCode Gen_Code(int kind, Operand op1, Operand p2, Operand op3, int size, char *rel);
 

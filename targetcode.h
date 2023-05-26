@@ -1,0 +1,30 @@
+#ifndef TARGETCODE
+#define TARGETCODE
+
+#include<stdio.h>
+#include<assert.h>
+#include "intercode.h"
+
+void init_tar(FILE *fout);
+void TgtCodeList(InterCodeNode *CodeList, FILE *fout);
+void TgtCode(InterCode code, FILE *fout);
+void TgtAdd(InterCode code, FILE *fout);
+void TgtSub(InterCode code, FILE *fout);
+void TgtMulti(InterCode code, FILE *fout);
+void TgtDiv(InterCode code, FILE *fout);
+void TgtAssignVal2Val(InterCode code, FILE *fout);
+void TgtGoCond(InterCode code, FILE *fout);
+void TgtReturn(InterCode code, FILE *fout);
+void TgtRead(InterCode code, FILE *fout);
+void TgtWrite(InterCode code, FILE *fout);
+
+int AddrVar(Operand op); // offset of fp
+
+struct VariList_def{
+    Operand op;
+    int offset;
+    struct VariList_def *nxt;
+};
+typedef struct VariList_def VariList;
+
+#endif
