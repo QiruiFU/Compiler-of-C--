@@ -67,6 +67,12 @@ void TgtCode(InterCode code, FILE *fout){
         case ASSIGN_VAL2VAL:
             TgtAssignVal2Val(code, fout);
             break;
+        case ASSIGN_VAL2PNT:
+            TgtAssignVal2Pnt(code, fout);
+            break;
+        case ASSIGN_PNT2VAL:
+            TgtAssignPnt2Val(code, fout);
+            break;
         case GOTO_COND:
             TgtGoCond(code, fout);
             break;
@@ -79,6 +85,9 @@ void TgtCode(InterCode code, FILE *fout){
         case WRITE:
             TgtWrite(code, fout);
             break;
+        case DEC:
+            TgtDec(code, fout);
+            break;
         default:
             Print_Code(code, fout);
     }
@@ -87,6 +96,9 @@ void TgtCode(InterCode code, FILE *fout){
 void TgtAdd(InterCode code, FILE *fout){
     if(code.u.op2.kind == OP_CONST){
         fprintf(fout, "    li $t2, %d\n", code.u.op2.u.val_const);
+    }
+    else if(code.u.op2.kind == OP_ARRAY){
+        fprintf(fout, "    la $t2, %d($fp)\n", AddrVar(code.u.op2));
     }
     else{
         fprintf(fout, "    lw $t2, %d($fp)\n", AddrVar(code.u.op2));
@@ -171,6 +183,23 @@ void TgtAssignVal2Val(InterCode code, FILE *fout){
     fprintf(fout, "    sw $t1, %d($fp)\n", AddrVar(code.u.op1));
 }
 
+void TgtAssignVal2Pnt(InterCode code, FILE *fout){
+    if(code.u.op2.kind==OP_CONST){
+        fprintf(fout, "    li $t1, %d\n", code.u.op2.u.val_const);
+    }
+    else{
+        fprintf(fout, "    lw $t1, %d($fp)\n", AddrVar(code.u.op2));
+    }
+    fprintf(fout, "    lw $t2, %d($fp)\n", AddrVar(code.u.op1));
+    fprintf(fout, "    sw $t1, 0($t2)\n");
+}
+
+void TgtAssignPnt2Val(InterCode code, FILE *fout){
+    fprintf(fout, "    lw $t1, %d($fp)\n", AddrVar(code.u.op2));
+    fprintf(fout, "    lw $t1, 0($t1)\n");
+    fprintf(fout, "    sw $t1, %d($fp)\n", AddrVar(code.u.op1));
+}
+
 void TgtGoCond(InterCode code, FILE *fout){
     char *ins;
     if(strcmp(code.u.rel, "==")==0) ins = "beq";
@@ -201,12 +230,30 @@ void TgtWrite(InterCode code, FILE *fout){
     fprintf(fout, "    jal write\n");
 }
 
+void TgtDec(InterCode code, FILE *fout){
+    // add an array to stack
+    VariList *p = (VariList*)malloc(sizeof(VariList));
+    p->offset = tot_offset;
+    p->op = code.u.op1;
+    p->nxt = VariListHead;
+    VariListHead = p;
+    tot_offset += 4 * code.u.size;
+}
+
+
 int CmpOP(Operand a, Operand b){
     if(a.kind != b.kind) return 0;
 
     switch(a.kind){
         case OP_VARI:
             return (a.u.no_vari==b.u.no_vari)? 1:0;
+            break;
+        case OP_ADD:
+            return (a.u.no_add==b.u.no_add)? 1:0;
+            break;
+        case OP_ARRAY:
+            return (a.u.no_array==b.u.no_array)? 1:0;
+            break;
         default:
             assert(0);
     }

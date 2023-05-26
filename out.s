@@ -24,67 +24,74 @@ write:
 main:
     move $fp, $sp
     jal read
-    sw $v0, 4($fp)
-    lw $t1, 4($fp)
-    sw $t1, 8($fp)
-    lw $t1, 8($fp)
-    sw $t1, 12($fp)
-    jal read
-    sw $v0, 16($fp)
-    lw $t1, 16($fp)
-    sw $t1, 20($fp)
-    lw $t1, 20($fp)
-    sw $t1, 12($fp)
-    lw $t1, 8($fp)
-    sw $t1, 24($fp)
-    lw $t1, 20($fp)
-    sw $t1, 28($fp)
-    lw $t2, 24($fp)
-    lw $t3, 28($fp)
-    add $t1, $t2, $t3
-    sw $t1, 32($fp)
-    lw $a0, 32($fp)
-    jal write
+    sw $v0, 164($fp)
+    lw $t1, 164($fp)
+    sw $t1, 168($fp)
+    lw $t1, 168($fp)
+    sw $t1, 172($fp)
     li $t1, 0
-    sw $t1, 12($fp)
-    lw $t1, 8($fp)
-    sw $t1, 36($fp)
-    lw $t1, 20($fp)
-    sw $t1, 40($fp)
-    lw $t2, 36($fp)
-    lw $t3, 40($fp)
-    sub $t1, $t2, $t3
-    sw $t1, 44($fp)
-    lw $a0, 44($fp)
-    jal write
-    li $t1, 0
-    sw $t1, 12($fp)
-    lw $t1, 8($fp)
-    sw $t1, 48($fp)
-    lw $t1, 20($fp)
-    sw $t1, 52($fp)
-    lw $t2, 48($fp)
-    lw $t3, 52($fp)
+    sw $t1, 176($fp)
+    li $t1, 2
+    sw $t1, 180($fp)
+    lw $t2, 180($fp)
+    li $t3, 1
     mul $t1, $t2, $t3
-    sw $t1, 56($fp)
-    lw $a0, 56($fp)
+    sw $t1, 180($fp)
+    lw $t2, 176($fp)
+    lw $t3, 180($fp)
+    add $t1, $t2, $t3
+    sw $t1, 176($fp)
+    lw $t2, 176($fp)
+    li $t3, 4
+    mul $t1, $t2, $t3
+    sw $t1, 176($fp)
+    la $t2, 4($fp)
+    lw $t3, 176($fp)
+    add $t1, $t2, $t3
+    sw $t1, 176($fp)
+    lw $t1, 176($fp)
+    sw $t1, 184($fp)
+    li $t1, 1
+    sw $t1, 188($fp)
+    lw $t1, 188($fp)
+    lw $t2, 184($fp)
+    sw $t1, 0($t2)
+    li $t1, 0
+    sw $t1, 192($fp)
+    li $t1, 2
+    sw $t1, 196($fp)
+    lw $t2, 196($fp)
+    li $t3, 1
+    mul $t1, $t2, $t3
+    sw $t1, 196($fp)
+    lw $t2, 192($fp)
+    lw $t3, 196($fp)
+    add $t1, $t2, $t3
+    sw $t1, 192($fp)
+    lw $t2, 192($fp)
+    li $t3, 4
+    mul $t1, $t2, $t3
+    sw $t1, 192($fp)
+    la $t2, 4($fp)
+    lw $t3, 192($fp)
+    add $t1, $t2, $t3
+    sw $t1, 192($fp)
+    lw $t1, 192($fp)
+    sw $t1, 200($fp)
+    lw $t1, 200($fp)
+    lw $t1, 0($t1)
+    sw $t1, 204($fp)
+    lw $t1, 168($fp)
+    sw $t1, 208($fp)
+    lw $t2, 204($fp)
+    lw $t3, 208($fp)
+    add $t1, $t2, $t3
+    sw $t1, 212($fp)
+    lw $a0, 212($fp)
     jal write
     li $t1, 0
-    sw $t1, 12($fp)
-    lw $t1, 8($fp)
-    sw $t1, 60($fp)
-    lw $t1, 20($fp)
-    sw $t1, 64($fp)
-    lw $t2, 60($fp)
-    lw $t3, 64($fp)
-    div $t2, $t3
-    mflo $t1
-    sw $t1, 68($fp)
-    lw $a0, 68($fp)
-    jal write
+    sw $t1, 172($fp)
     li $t1, 0
-    sw $t1, 12($fp)
-    li $t1, 0
-    sw $t1, 72($fp)
-    lw $v0, 72($fp)
+    sw $t1, 216($fp)
+    lw $v0, 216($fp)
     jr $ra

@@ -1,10 +1,8 @@
 int main(){
-    int x, y;
-    x = read();
-    y = read();
-    write(x+y);
-    write(x-y);
-    write(x*y);
-    write(x/y);
+    int arr[10];
+    int a;
+    a = read();
+    arr[2] = 1;
+    write(arr[2] + a);
     return 0;
 }

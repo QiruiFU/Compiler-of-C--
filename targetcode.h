@@ -13,10 +13,13 @@ void TgtSub(InterCode code, FILE *fout);
 void TgtMulti(InterCode code, FILE *fout);
 void TgtDiv(InterCode code, FILE *fout);
 void TgtAssignVal2Val(InterCode code, FILE *fout);
+void TgtAssignVal2Pnt(InterCode code, FILE *fout);
+void TgtAssignPnt2Val(InterCode code, FILE *fout);
 void TgtGoCond(InterCode code, FILE *fout);
 void TgtReturn(InterCode code, FILE *fout);
 void TgtRead(InterCode code, FILE *fout);
 void TgtWrite(InterCode code, FILE *fout);
+void TgtDec(InterCode code, FILE *fout);
 
 int AddrVar(Operand op); // offset of fp
 
