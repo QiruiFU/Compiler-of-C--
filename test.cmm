@@ -1,8 +1,12 @@
+int fact(int n){
+    if(n<=1) return 1;
+    else return fact(n-1)*n;
+}
+
 int main(){
-    int arr[10];
-    int a;
-    a = read();
-    arr[2] = 1;
-    write(arr[2] + a);
+    int m, res;
+    m = read();
+    res = fact(m);
+    write(res);
     return 0;
 }

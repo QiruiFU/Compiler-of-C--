@@ -165,6 +165,7 @@ void Print_Code(InterCode code, FILE* f){
 void Print_List(InterCodeNode* head, FILE *f){
     InterCodeNode* cur = head->next;
     while(cur!=NULL){
+        fprintf(f, "%d ", cur->node.kind);
         Print_Code(cur->node, f);
         cur = cur->next;
     }

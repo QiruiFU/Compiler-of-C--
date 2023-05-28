@@ -2,6 +2,9 @@
 
 VariList *VariListHead = NULL;
 int tot_offset = 4;
+int para_cnt = 0;
+int arg_offset = 0;
+char cur_func[50];
 
 void init_tar(FILE *fout){
     fprintf(fout, ".data\n");
@@ -16,7 +19,11 @@ void init_tar(FILE *fout){
     fprintf(fout, "    syscall\n");
     fprintf(fout, "    li $v0, 5\n");
     fprintf(fout, "    syscall\n");
-    fprintf(fout, "    jr $ra\n");
+    fprintf(fout, "    la $sp, -8($fp)\n");
+    fprintf(fout, "    move $t8, $ra\n");
+    fprintf(fout, "    lw $ra, -4($fp)\n");
+    fprintf(fout, "    lw $fp, -8($fp)\n");
+    fprintf(fout, "    jr $t8\n");
     fprintf(fout, "\n");
     fprintf(fout, "write:\n");
     fprintf(fout, "    li $v0, 1\n");
@@ -25,14 +32,21 @@ void init_tar(FILE *fout){
     fprintf(fout, "    la $a0, _ret\n");
     fprintf(fout, "    syscall\n");
     fprintf(fout, "    move $v0, $0\n");
-    fprintf(fout, "    jr $ra\n");
-    fprintf(fout, "\n");
+    fprintf(fout, "    la $sp, -12($fp)\n");
+    fprintf(fout, "    move $t8, $ra\n");
+    fprintf(fout, "    lw $ra, -4($fp)\n");
+    fprintf(fout, "    lw $fp, -8($fp)\n");
+    fprintf(fout, "    jr $t8\n");
 }
 
 void TgtCodeList(InterCodeNode *CodeList, FILE *fout){
     init_tar(fout);
     InterCodeNode *code = CodeList->next;
     while(code!=NULL){
+        if(code->node.kind == FUNC){
+            tot_offset = 4;
+            my_alloc(code);
+        }
         TgtCode(code->node, fout);
         code = code->next;
     }
@@ -44,10 +58,7 @@ void TgtCode(InterCode code, FILE *fout){
             fprintf(fout, "label%d:\n", code.u.op1.u.no_label);
             break;
         case FUNC:
-            fprintf(fout, "%s:\n", code.u.op1.u.name_func);
-            if(strcmp(code.u.op1.u.name_func, "main")==0){
-                fprintf(fout, "    move $fp, $sp\n");
-            }
+            TgtFunc(code, fout);
             break;
         case GOTO:
             fprintf(fout, "    j label%d\n", code.u.op1.u.no_label);
@@ -88,8 +99,72 @@ void TgtCode(InterCode code, FILE *fout){
         case DEC:
             TgtDec(code, fout);
             break;
+        case ARG:
+            TgtArg(code, fout);
+            break;
+        case CALL:
+            TgtCall(code, fout);
+            break;
+        case PARAM:
+            TgtParam(code, fout);
+            break;
         default:
             Print_Code(code, fout);
+    }
+}
+
+void my_alloc(InterCodeNode *code){
+    InterCodeNode *cur = code->next;
+    while(cur!=NULL && cur->node.kind!=FUNC){
+        switch(cur->node.kind){
+            case ADD:
+            case SUB:
+            case MULTI:
+            case DIV:
+                AddrVar(cur->node.u.op1);
+                AddrVar(cur->node.u.op2);
+                AddrVar(cur->node.u.op3);
+                break;
+            case ASSIGN_VAL2VAL:
+            case ASSIGN_VAL2PNT:
+            case ASSIGN_PNT2VAL:
+                AddrVar(cur->node.u.op1);
+                AddrVar(cur->node.u.op2);
+                break;
+            case GOTO_COND:
+                AddrVar(cur->node.u.op1);
+                AddrVar(cur->node.u.op2);
+                break;
+            case RETURN:
+                AddrVar(cur->node.u.op1);
+                break;
+            case READ:
+                AddrVar(cur->node.u.op1);
+                break;
+            case WRITE:
+                AddrVar(cur->node.u.op1);
+                break;
+            case DEC:
+                {
+                    VariList *p = (VariList*)malloc(sizeof(VariList));
+                    p->offset = tot_offset;
+                    p->op = cur->node.u.op1;
+                    p->nxt = VariListHead;
+                    VariListHead = p;
+                    tot_offset += cur->node.u.size;
+                }
+                break;
+            case ARG:
+                AddrVar(cur->node.u.op1);
+                break;
+            case CALL:
+                AddrVar(cur->node.u.op1);
+                break;
+            case PARAM:
+                AddrVar(cur->node.u.op1);
+                break;
+        }
+        cur = cur->next;
     }
 }
 
@@ -216,18 +291,50 @@ void TgtGoCond(InterCode code, FILE *fout){
 }
 
 void TgtReturn(InterCode code, FILE *fout){
-    fprintf(fout, "    lw $v0, %d($fp)\n", AddrVar(code.u.op1));
-    fprintf(fout, "    jr $ra\n");
+    if(strcmp(cur_func, "main")!=0){
+        fprintf(fout, "    lw $v0, %d($fp)\n", AddrVar(code.u.op1));
+        int sp_offset = -(para_cnt*4)-8;
+        fprintf(fout, "    la $sp, %d($fp)\n", sp_offset); // recover $sp
+        fprintf(fout, "    move $t8, $ra\n"); // save $ra
+        fprintf(fout, "    lw $ra, -4($fp)\n"); // recover $ra
+        fprintf(fout, "    lw $fp, -8($fp)\n"); // recover $fp
+        fprintf(fout, "    jr $t8\n"); // return
+    }
+    else{
+        fprintf(fout, "    lw $v0, %d($fp)\n", AddrVar(code.u.op1));
+        fprintf(fout, "    jr $ra\n");
+    }
 }
 
 void TgtRead(InterCode code, FILE *fout){
+    // fprintf(fout, "    jal read\n");
+    // fprintf(fout, "    sw $v0, %d($fp)\n", AddrVar(code.u.op1));
+    fprintf(fout, "    sw $fp, 0($sp)\n");
+    fprintf(fout, "    sw $ra, 4($sp)\n");
+    fprintf(fout, "    la $fp, 8($sp)\n");
+    arg_offset = 0;
     fprintf(fout, "    jal read\n");
     fprintf(fout, "    sw $v0, %d($fp)\n", AddrVar(code.u.op1));
 }
 
 void TgtWrite(InterCode code, FILE *fout){
+    // fprintf(fout, "    jal write\n");
     fprintf(fout, "    lw $a0, %d($fp)\n", AddrVar(code.u.op1));
+    fprintf(fout, "    sw $fp, 0($sp)\n");
+    fprintf(fout, "    sw $ra, 4($sp)\n");
+    fprintf(fout, "    la $fp, 8($sp)\n");
+    arg_offset = 0;
     fprintf(fout, "    jal write\n");
+}
+
+void TgtFunc(InterCode code, FILE *fout){
+    fprintf(fout, "\n%s:\n", code.u.op1.u.name_func);
+    strcpy(cur_func, code.u.op1.u.name_func);
+    if(strcmp(cur_func, "main")==0){
+        fprintf(fout, "    move $fp, $sp\n");
+    }
+    fprintf(fout, "    addi $sp, $fp, %d\n", tot_offset);
+    para_cnt = 0;
 }
 
 void TgtDec(InterCode code, FILE *fout){
@@ -238,6 +345,29 @@ void TgtDec(InterCode code, FILE *fout){
     p->nxt = VariListHead;
     VariListHead = p;
     tot_offset += 4 * code.u.size;
+}
+
+void TgtArg(InterCode code, FILE *fout){
+    fprintf(fout, "    lw $t1, %d($fp)\n", AddrVar(code.u.op1));
+    fprintf(fout, "    sw $t1, %d($sp)\n", arg_offset);
+    arg_offset += 4;
+}
+
+void TgtCall(InterCode code, FILE *fout){
+    fprintf(fout, "    sw $fp, %d($sp)\n", arg_offset);
+    arg_offset += 4;
+    fprintf(fout, "    sw $ra, %d($sp)\n", arg_offset);
+    arg_offset += 4;
+    fprintf(fout, "    la $fp, %d($sp)\n", arg_offset);
+    arg_offset = 0;
+    fprintf(fout, "    jal %s\n", code.u.op2.u.name_func);
+    fprintf(fout, "    sw $v0, %d($fp)\n", AddrVar(code.u.op1));
+}
+
+void TgtParam(InterCode code, FILE *fout){
+    para_cnt++;
+    int offset = -(para_cnt*4)-8;
+    DeterAddr(code.u.op1, offset);
 }
 
 
@@ -260,6 +390,7 @@ int CmpOP(Operand a, Operand b){
 }
 
 int AddrVar(Operand op){ // offset of fp
+    if(op.kind == OP_CONST || op.kind == OP_FUNC || op.kind == OP_LABEL) return 0;
     VariList *cur = VariListHead;
     while(cur!=NULL){
         if(CmpOP(op, cur->op)==1)
@@ -276,4 +407,21 @@ int AddrVar(Operand op){ // offset of fp
     VariListHead = p;
     tot_offset += 4;
     return VariListHead->offset;
+}
+
+void DeterAddr(Operand op, int offset){
+    VariList *cur = VariListHead;
+    while(cur!=NULL){
+        if(CmpOP(op, cur->op)==1){
+            cur->offset = offset;
+            return;
+        }
+        else cur = cur->nxt;
+    }
+
+    VariList *p = (VariList*)malloc(sizeof(VariList));
+    p->offset = offset;
+    p->op = op;
+    p->nxt = VariListHead;
+    VariListHead = p;
 }

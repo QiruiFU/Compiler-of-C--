@@ -18,10 +18,16 @@ void TgtAssignPnt2Val(InterCode code, FILE *fout);
 void TgtGoCond(InterCode code, FILE *fout);
 void TgtReturn(InterCode code, FILE *fout);
 void TgtRead(InterCode code, FILE *fout);
+void TgtFunc(InterCode code, FILE *fout);
 void TgtWrite(InterCode code, FILE *fout);
 void TgtDec(InterCode code, FILE *fout);
+void TgtArg(InterCode code, FILE *fout);
+void TgtCall(InterCode code, FILE *fout);
+void TgtParam(InterCode code, FILE *fout);
 
 int AddrVar(Operand op); // offset of fp
+void DeterAddr(Operand op, int offset);
+void my_alloc(InterCodeNode *code);
 
 struct VariList_def{
     Operand op;
