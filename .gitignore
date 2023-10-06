@@ -2,6 +2,7 @@
 *.cmm
 *.ir
 *.s
+.vscode
 parser
 irsim
 
