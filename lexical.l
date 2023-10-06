@@ -1,8 +1,10 @@
 %{
 #include "syntax.tab.h"
 #include "ParseTree.h"
+#include "config.h"
 #include<string.h>
 #include<stdlib.h>
+#include<assert.h>
 int lineno = 1;
 int yycolumn = 1;
 extern int cnt_False;
@@ -21,11 +23,19 @@ struct tree_node* new_node(char* name, int line, char* val);
 
 letter [a-zA-Z]
 digit [0-9]
+OctDigit [0-7]
+HexDigit [0-9A-Fa-f]
 PosNum [1-9]
 
 %%
 
-"//" {char c=input(); while(c!='\n') c=input(); lineno++; yycolumn=1;}
+"//" {
+    char c=input(); while(c!='\n') c=input(); lineno++; yycolumn=1;
+    #ifndef LAB1_3 
+        cnt_False++;
+        printf("Error type B at Line %d: comments are not allowed\n", lineno-1);
+    #endif
+    }
 "/*" {
         char a=input(); char b=input();
         if(a=='\n') lineno++;
@@ -42,6 +52,11 @@ PosNum [1-9]
                 break;
             }
         }
+    #ifndef LAB1_3
+        cnt_False++;
+        printf("Error type B at Line %d: comments are not allowed\n", lineno);
+    #endif
+    
     }
 
 [\t ]+ {}
@@ -70,13 +85,33 @@ PosNum [1-9]
 "if" { yylval=new_node("IF", lineno, yytext); return IF;}
 "else" { yylval=new_node("ELSE", lineno, yytext); return ELSE;}
 "while" { yylval=new_node("WHILE", lineno, yytext); return WHILE;}
-{PosNum}{digit}*|0 { yylval=new_node("INT", lineno, yytext); return INT;}
-0{digit}+ {printf("Error type A at Line %d: invalid 0\n", lineno);}
+
+{PosNum}{digit}*|0 { yylval=new_node("DECE", lineno, yytext); return INT;}
+0{OctDigit}+ {yylval=new_node("OCT", lineno, yytext); return INT;}
+0[Xx]{HexDigit}+ {yylval=new_node("HEX", lineno, yytext); return INT;}
+
+0{digit}+ {cnt_False++; printf("Error type A at Line %d: invalid 0\n", lineno);}
 ({PosNum}{digit}*|0)\.{digit}+ { yylval=new_node("FLOAT", lineno, yytext); return FLOAT;}
 ("_"|{letter})("_"|{digit}|{letter})* { yylval=new_node("ID", lineno, yytext); return ID;}
 .  {cnt_False++; printf("Error type A at Line %d: Mysterious characters \'%s\' \n", lineno, yytext);}
 
 %%
+
+int Hex2Dec(char ch){
+    if(ch>='0' && ch<='9'){
+        return ch - '0';
+    }
+    else if(ch>='a' && ch<='f'){
+        return ch - 'a' + 10;
+    }
+    else if(ch>='A' && ch<='F'){
+        return ch - 'A' + 10;
+    }
+    else{
+        printf("wrong hex\n");
+        assert(0);
+    }
+}
 
 struct tree_node* new_node(char name[], int line, char val[]){
     // printf("%s %d %s\n", name, line, val);
@@ -85,8 +120,31 @@ struct tree_node* new_node(char name[], int line, char val[]){
     new_pnt->first_line = line;
     new_pnt->father = new_pnt->first_child = new_pnt->brother = NULL;
 
-    if(strcmp(name, "INT")==0){
+    if(strcmp(name, "DECE")==0){
         new_pnt->compos.val_int = atoi(val);
+        strcpy(new_pnt->name, "INT");
+    }
+    else if(strcmp(name, "OCT")==0){
+        int l = strlen(val)-1;
+        int res = 0, base = 1;
+        while(l){
+            res += (val[l]-'0') * base;
+            base *= 8;
+            l--;
+        }
+        new_pnt->compos.val_int = res;
+        strcpy(new_pnt->name, "INT");
+    }
+    else if(strcmp(name, "HEX")==0){
+        int l = strlen(val)-1;
+        int res = 0, base = 1;
+        while(l>1){
+            res += Hex2Dec(val[l])*base;
+            base *= 16;
+            l--;
+        }
+        new_pnt->compos.val_int = res;
+        strcpy(new_pnt->name, "INT");
     }
     else if(strcmp(name, "FLOAT")==0){
         new_pnt->compos.val_float = (float)atof(val);
