@@ -87,27 +87,13 @@ PosNum [1-9]
 "while" { yylval=new_node("WHILE", lineno, yytext); return WHILE;}
 
 {PosNum}{digit}*|0 { yylval=new_node("DECE", lineno, yytext); return INT;}
-0{OctDigit}+ {
-                #ifdef LAB1_1
-                yylval=new_node("OCT", lineno, yytext); return INT;
-                #else
-                cnt_False++;
-                printf("Error type A at Line %d: Oct number is not allowed \'%s\' \n", lineno, yytext);
-                #endif    
-            }
-0[Xx]{HexDigit}+ {
-                #ifdef LAB1_1
-                yylval=new_node("HEX", lineno, yytext); return INT;
-                #else
-                cnt_False++;
-                printf("Error type A at Line %d: HEX number is not allowed \'%s\' \n", lineno, yytext);
-                #endif  
-                }
+0{OctDigit}+ {yylval=new_node("OCT", lineno, yytext); return INT;}
+0[Xx]{HexDigit}+ {yylval=new_node("HEX", lineno, yytext); return INT;}
 
-0{digit}+ {cnt_False++; printf("Error type A at Line %d: invalid 0\n", lineno);}
 ({PosNum}{digit}*|0)\.{digit}+ { yylval=new_node("FLOAT", lineno, yytext); return FLOAT;}
 ("_"|{letter})("_"|{digit}|{letter})* { yylval=new_node("ID", lineno, yytext); return ID;}
-.  {cnt_False++; printf("Error type A at Line %d: Mysterious characters \'%s\' \n", lineno, yytext);}
+~  {cnt_False++; printf("Error type A at Line %d: Mysterious characters \'%s\' \n", lineno, yytext);}
+.  {cnt_False++; /*printf("Error type A at Line %d: Mysterious characters \'%s\' \n", lineno, yytext);*/}
 
 %%
 

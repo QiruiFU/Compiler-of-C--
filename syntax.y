@@ -52,6 +52,9 @@ ExtDef : Specifier ExtDecList SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=father
     | Specifier FunDec CompSt {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("ExtDef", @$.first_line, 3, p);}
     | Specifier ExtDecList error SEMI 
     | Specifier error SEMI 
+    | Specifier error CompSt 
+    | Specifier FunDec error
+    | error SEMI
     ;
 
 ExtDecList : VarDec {struct tree_node* p[1]={$1}; $$=fatherize("ExtDecList", @$.first_line, 1, p);}
@@ -66,6 +69,10 @@ Specifier : TYPE {struct tree_node* p[1]={$1}; $$=fatherize("Specifier", @$.firs
 
 StructSpecifier : STRUCT OptTag LC DefList RC {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("StructSpecifier", @$.first_line, 5, p);}
     | STRUCT Tag {struct tree_node* p[2]={$1,$2}; $$=fatherize("StructSpecifier", @$.first_line, 2, p);}
+    | STRUCT OptTag error
+    | STRUCT OptTag LC error RC
+    | error OptTag LC DefList RC
+    | error Tag
     ;
 
 OptTag : ID {struct tree_node* p[1]={$1}; $$=fatherize("OptTag", @$.first_line, 1, p);}
@@ -79,21 +86,27 @@ Tag : ID {struct tree_node* p[1]={$1}; $$=fatherize("Tag", @$.first_line, 1, p);
 
 VarDec : ID {struct tree_node* p[1]={$1}; $$=fatherize("VarDec", @$.first_line, 1, p);}
     | VarDec LB INT RB {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("VarDec", @$.first_line, 4, p);}
+    | VarDec LB error RB
+    | error LB INT RB
     ;
 
 FunDec : ID LP VarList RP {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("FunDec", @$.first_line, 4, p);}
     | ID LP RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("FunDec", @$.first_line, 3, p);}
+    | ID LP error RP
+    | error LP RP
     ;
 
 VarList : ParamDec COMMA VarList {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("VarList", @$.first_line, 3, p);}
     | ParamDec {struct tree_node* p[1]={$1}; $$=fatherize("VarList", @$.first_line, 1, p);}
+    | ParamDec COMMA error
     ;
 
 ParamDec : Specifier VarDec {struct tree_node* p[2]={$1,$2}; $$=fatherize("ParamDec", @$.first_line, 2, p);}
 
 /*=========== Statements ========*/
 
-CompSt : LC DefList StmtList error RC {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("CompSt", @$.first_line, 4, p);}
+CompSt : LC DefList StmtList RC {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("CompSt", @$.first_line, 4, p);}
+    | LC error RC
     ;
 
 StmtList : Stmt StmtList {struct tree_node* p[2]={$1,$2}; $$=fatherize("StmtList", @$.first_line, 2, p);}
@@ -106,8 +119,11 @@ Stmt : Exp SEMI {struct tree_node* p[2]={$1,$2}; $$=fatherize("Stmt", @$.first_l
     | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
     | IF LP Exp RP Stmt ELSE Stmt {struct tree_node* p[7]={$1,$2,$3,$4,$5,$6,$7}; $$=fatherize("Stmt", @$.first_line, 7, p);}
     | WHILE LP Exp RP Stmt {struct tree_node* p[5]={$1,$2,$3,$4,$5}; $$=fatherize("Stmt", @$.first_line, 5, p);}
-    | Exp error SEMI
-    | RETURN Exp error SEMI
+    | IF error Stmt
+    | IF error ELSE Stmt
+    | WHILE error Stmt
+    | RETURN error SEMI
+    | error SEMI
     ;
 
 /*=========== Local Definition ========*/
@@ -117,15 +133,18 @@ DefList : Def DefList {struct tree_node* p[2]={$1,$2}; $$=fatherize("DefList", @
     ;
 
 Def : Specifier DecList SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Def", @$.first_line, 3, p);}
-    | Specifier DecList error SEMI
+    | Specifier error SEMI
     ;
 
 DecList : Dec {struct tree_node* p[1]={$1}; $$=fatherize("DecList", @$.first_line, 1, p);}
     | Dec COMMA DecList {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("DecList", @$.first_line, 3, p);}
+    | error DecList
     ;
 
 Dec : VarDec {struct tree_node* p[1]={$1}; $$=fatherize("Dec", @$.first_line, 1, p);}
     | VarDec ASSIGNOP Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Dec", @$.first_line, 3, p);}
+    | VarDec error Exp
+    | VarDec ASSIGNOP error
     ;
 
 /*=========== Expression ========*/
@@ -138,16 +157,19 @@ Exp : Exp ASSIGNOP Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @
     | Exp MINUS Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp STAR Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp DIV Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
-    | LP Exp error RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
+    | LP Exp RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | MINUS Exp {struct tree_node* p[2]={$1,$2}; $$=fatherize("Exp", @$.first_line, 2, p);}
     | NOT Exp {struct tree_node* p[2]={$1,$2}; $$=fatherize("Exp", @$.first_line, 2, p);}
-    | ID LP Args error RP {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
-    | ID LP error RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
+    | ID LP Args RP {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
+    | ID LP RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp LB Exp RB {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
     | Exp DOT ID {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | ID {struct tree_node* p[1]={$1}; $$=fatherize("Exp", @$.first_line, 1, p);}
     | INT {struct tree_node* p[1]={$1}; $$=fatherize("Exp", @$.first_line, 1, p);}
     | FLOAT {struct tree_node* p[1]={$1}; $$=fatherize("Exp", @$.first_line, 1, p);}
+    | Exp error Exp
+    | Exp error
+    | ID LP error RP
     ;
 
 Args : Exp COMMA Args {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Args", @$.first_line, 3, p);}
