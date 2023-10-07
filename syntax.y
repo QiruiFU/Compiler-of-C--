@@ -93,7 +93,7 @@ ParamDec : Specifier VarDec {struct tree_node* p[2]={$1,$2}; $$=fatherize("Param
 
 /*=========== Statements ========*/
 
-CompSt : LC DefList StmtList RC {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("CompSt", @$.first_line, 4, p);}
+CompSt : LC DefList StmtList error RC {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("CompSt", @$.first_line, 4, p);}
     ;
 
 StmtList : Stmt StmtList {struct tree_node* p[2]={$1,$2}; $$=fatherize("StmtList", @$.first_line, 2, p);}
@@ -138,11 +138,11 @@ Exp : Exp ASSIGNOP Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @
     | Exp MINUS Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp STAR Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp DIV Exp {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
-    | LP Exp RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
+    | LP Exp error RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | MINUS Exp {struct tree_node* p[2]={$1,$2}; $$=fatherize("Exp", @$.first_line, 2, p);}
     | NOT Exp {struct tree_node* p[2]={$1,$2}; $$=fatherize("Exp", @$.first_line, 2, p);}
-    | ID LP Args RP {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
-    | ID LP RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
+    | ID LP Args error RP {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
+    | ID LP error RP {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | Exp LB Exp RB {struct tree_node* p[4]={$1,$2,$3,$4}; $$=fatherize("Exp", @$.first_line, 4, p);}
     | Exp DOT ID {struct tree_node* p[3]={$1,$2,$3}; $$=fatherize("Exp", @$.first_line, 3, p);}
     | ID {struct tree_node* p[1]={$1}; $$=fatherize("Exp", @$.first_line, 1, p);}
