@@ -1,4 +1,5 @@
 #include "type_func.h"
+#include "config.h"
 #include<stdio.h>
 #include<assert.h>
 #include<string.h>
@@ -19,6 +20,9 @@ int TypeMatch(Type* type_a, Type* type_b){
         return TypeMatch(type_a->type.array.type_ele, type_b->type.array.type_ele);
     }
     else if(type_a->kind==STRUCTT){
+
+        #ifdef STRUCTEQU
+
         Field *fld_a = type_a->type.struc, *fld_b = type_b->type.struc;
         while(fld_a!=NULL && fld_b!=NULL && TypeMatch(fld_a->type_field, fld_b->type_field)){
             fld_a = fld_a->nxt;
@@ -27,6 +31,17 @@ int TypeMatch(Type* type_a, Type* type_b){
 
         if(fld_a==NULL && fld_b==NULL) return 1;
         else return 0;
+
+        #else
+
+        if(type_a->struct_name==NULL || type_b->struct_name==NULL) return 0;
+        else {
+            int reselt = strcmp(type_a->struct_name, type_b->struct_name);
+            if(reselt==0) return 1;
+            else return 0;
+        }
+
+        #endif
     }
     else assert(0);
 }

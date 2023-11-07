@@ -18,6 +18,7 @@ struct Type_def{
         }array;
         struct Field_def* struc;
     }type;
+    char *struct_name;
 };
 typedef struct Type_def Type;
 

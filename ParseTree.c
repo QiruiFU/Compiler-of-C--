@@ -100,9 +100,21 @@ void Check(struct tree_node* root){
         else assert(0);
     }
     else if(strcmp(root->name, "StructSpecifier")==0){
-        if(root->cnt_child==5) root->type = child_of_no(4, root)->type;
-        else if(root->cnt_child==4) root->type = child_of_no(3, root)->type;
-        else if(root->cnt_child==2) root->type = child_of_no(2, root)->type;
+        if(root->cnt_child==5){
+            root->type = child_of_no(4, root)->type;
+            char *target_name = child_of_no(2, root)->first_child->compos.id;
+            root->type->struct_name = (char*)malloc((strlen(target_name)+1) * sizeof(char));
+            strcpy(root->type->struct_name, target_name);
+        }
+        else if(root->cnt_child==4){
+            root->type = child_of_no(3, root)->type;
+        }
+        else if(root->cnt_child==2){
+            root->type = child_of_no(2, root)->type;
+            char *target_name = child_of_no(2, root)->first_child->compos.id;
+            root->type->struct_name = (char*)malloc((strlen(target_name)+1) * sizeof(char));
+            strcpy(root->type->struct_name, target_name);
+        }
         else assert(0);
     }
     else if(strcmp(root->name, "DefList")==0 && strcmp(root->father->name, "DefList")!=0){
@@ -370,7 +382,6 @@ void Insert(struct tree_node* root){
 
     if(strcmp(cur->father->name, "OptTag")==0){
         sym.kind = STRUCTT;
-
         // declare a struct 
         struct tree_node* DefLst = cur->father->brother->brother;
         DefLst->type = (Type*)malloc(sizeof(Type));
