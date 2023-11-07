@@ -31,7 +31,7 @@ PosNum [1-9]
 
 "//" {
     char c=input(); while(c!='\n') c=input(); lineno++; yycolumn=1;
-    #ifndef LAB1_3 
+    #ifndef COMMENT 
         cnt_False++;
         printf("Error type B at Line %d: comments are not allowed\n", lineno-1);
     #endif
@@ -52,7 +52,7 @@ PosNum [1-9]
                 break;
             }
         }
-    #ifndef LAB1_3
+    #ifndef COMMENT
         cnt_False++;
         printf("Error type B at Line %d: comments are not allowed\n", lineno);
     #endif

@@ -69,7 +69,7 @@ int main(int argc, char** argv){
     yyparse();
 
     if(cnt_False == 0){
-        print_tree(ROOT, 0);
+        // print_tree(ROOT, 0);
         // initiate();
         // int exist = ExistStruct(ROOT);
         // if(exist==1){
@@ -82,7 +82,7 @@ int main(int argc, char** argv){
         //     perror(argv[2]);
         //     return 1;
         // }
-        // Check(ROOT);
+        Check(ROOT);
         // Translate(ROOT);
         
         // // Print_List(CodeList, fout);

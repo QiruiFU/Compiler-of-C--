@@ -1,1 +1,2 @@
-// #define LAB1_3
+#define COMMENT
+#define STRUCTEQU

@@ -34,10 +34,10 @@ void Hash_Add(HashTable* table, Symbol sym){
                 array_cnt++;
                 sym.rank = array_cnt;
             }
-            else assert(0);
+            // else assert(0);
             break;
-        default:
-            assert(0);
+        // default:
+            // assert(0);
     }
 
     unsigned int val = Hash_func(sym.name);

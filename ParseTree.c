@@ -235,10 +235,11 @@ void Check(struct tree_node* root){
                     if(lch->assignable==0){
                         printf("Error type 6 at Line %d: the left side of assignment is invalid \n", root->first_line);
                     }
+                    root->type = lch->type;
                 }
             }
             else if(strcmp(root->first_child->name, "LP")==0){ // Exp -> LP Exp RP
-                root->type = root->first_child->type;
+                root->type = child_of_no(2, root)->type;
             }
             else if(strcmp(root->first_child->name, "ID")==0){ // Exp -> ID LP RP
                 Symbol sym;
@@ -286,6 +287,7 @@ void Check(struct tree_node* root){
                 }
                 else if(node->symbol.kind == FUNCTIONN){
                     if(strcmp(node->symbol.name, "write")!=0){
+                        root->type = node->symbol.prop.sym_func->retn;
 
                         Field* para = node->symbol.prop.sym_func->Argv;
                         struct tree_node* arg = child_of_no(3, root);
@@ -498,8 +500,8 @@ void Insert(struct tree_node* root){
             else printf("Error type 15 at Line %d: field %s has been declared\n", cur->first_line, cur->compos.id);
         }
 
-        if(judge==STRUCTT && cur->father->brother!=NULL && strcmp(cur->father->brother->name, "ASSIGNOP")==0){
-            printf("Error type 15 at Line %d: initialize the field %s in declaration\n", cur->first_line, cur->compos.id);
+        if(judge==STRUCTT && root->father->brother!=NULL && strcmp(root->father->brother->name, "ASSIGNOP")==0){
+            printf("Error type 15 at Line %d: initialize the field %s in declaration\n", root->first_line, root->compos.id);
         }
 
         root->type = cur->type = sym.prop.sym_type;
