@@ -1,8 +1,11 @@
 #include "ParseTree.h"
+#include "Stack.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<assert.h>
+
+extern Stack* page_stack;
 
 struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node* children[20]){
     // build a new node, which is the father of given nodes
@@ -75,8 +78,30 @@ void Check(struct tree_node* root){
 
 
     if(strcmp(root->name, "ID")==0 && strcmp(root->father->name, "FunDec")==0){
+        HashTable* new_symbol_table = Hash_Init();
+        Stack_push(page_stack, new_symbol_table);
+
         struct tree_node *temp = root->brother->brother;
         if(strcmp(temp->name, "VarList")==0) Check(temp);
+        temp = root->father->brother;
+        assert(strcmp(temp->name, "CompSt")==0);
+        Check(temp);
+
+        Stack_pop(page_stack);
+    }
+    else if(strcmp(root->name, "CompSt")==0){
+        if(root->father->cnt_child == 1){
+            HashTable* new_symbol_table = Hash_Init();
+            Stack_push(page_stack, new_symbol_table);
+            if(root->cnt_child > 2){
+                Check(child_of_no(2, root));
+                Check(child_of_no(3, root));
+            }
+            Stack_pop(page_stack);
+        }
+        else{
+            assert(root->father->cnt_child == 3); // function body
+        }
     }
 
     struct tree_node* curr = root->first_child;
@@ -170,7 +195,7 @@ void Check(struct tree_node* root){
         strcpy(sym.name, root->first_child->compos.id);
         sym.kind = STRUCTT;
 
-        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        HashTableNode* node = Stack_find(page_stack, sym);
         if(node==NULL || node->symbol.kind!=STRUCTT){
             printf("Error type 17 at Line %d: structure %s is undefined\n", root->first_line, sym.name);
         }
@@ -185,7 +210,7 @@ void Check(struct tree_node* root){
                 Symbol sym;
                 sym.kind = VARIABLEE;
                 strcpy(sym.name, root->first_child->compos.id);
-                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                HashTableNode* node = Stack_find(page_stack, sym);
                 if(node==NULL){
                     printf("Error type 1 at Line %d: undeclared variable %s\n", root->first_line, sym.name);
                 }
@@ -256,7 +281,7 @@ void Check(struct tree_node* root){
             else if(strcmp(root->first_child->name, "ID")==0){ // Exp -> ID LP RP
                 Symbol sym;
                 strcpy(sym.name, root->first_child->compos.id);
-                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                HashTableNode* node = Stack_find(page_stack, sym);
                 if(node==NULL){
                     printf("Error type 2 at Line %d: undeclared function %s\n", root->first_line, sym.name);
                 }
@@ -282,7 +307,7 @@ void Check(struct tree_node* root){
                 else{
                     Symbol sym;
                     strcpy(sym.name, child_of_no(3, root)->compos.id);
-                    HashTableNode *node = Hash_Find(&Hash_table, sym);
+                    HashTableNode *node = Stack_find(page_stack, sym);
                     assert(node!=NULL);
                     root->type = node->symbol.prop.sym_type;
                 }
@@ -293,7 +318,7 @@ void Check(struct tree_node* root){
             if(strcmp(root->first_child->name, "ID")==0){ // Exp -> ID LP Args RP
                 Symbol sym;
                 strcpy(sym.name, root->first_child->compos.id);
-                HashTableNode* node = Hash_Find(&Hash_table, sym);
+                HashTableNode* node = Stack_find(page_stack, sym);
                 if(node==NULL){
                     printf("Error type 2 at Line %d: undeclared function %s\n", root->first_line, sym.name);
                 }
@@ -367,7 +392,7 @@ void Check(struct tree_node* root){
         root->type = (Type*)malloc(sizeof(Type));
     }
 
-    // printf("%s out\n", root->name);
+    // printf("%s %d out\n", root->name, page_stack->size);
     
 
 }
@@ -388,9 +413,9 @@ void Insert(struct tree_node* root){
         assert(strcmp(DefLst->name, "DefList")==0);
         sym.prop.sym_type = DefLst->type;
 
-        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        HashTableNode* node = Stack_find(page_stack, sym);
         if(node==NULL || node->symbol.kind==FUNCTIONN){
-            Hash_Add(&Hash_table, sym);
+            Hash_Add(Stack_top(page_stack), sym);
         }
         else{
             printf("Error type 16 at Line %d: name of structure %s is repeated\n", cur->first_line, cur->compos.id);
@@ -434,9 +459,10 @@ void Insert(struct tree_node* root){
         };
 
 
-        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        HashTableNode* node = Stack_find(page_stack, sym);
         if(node==NULL || node->symbol.kind!=FUNCTIONN){
-            Hash_Add(&Hash_table, sym);
+            // printf("%s %d\n", sym.name, page_stack->size);
+            Hash_Add(Stack_top(page_stack), sym);
         }
         else{
             printf("Error type 4 at Line %d: function %s has been declared\n", cur->first_line, cur->compos.id);
@@ -500,9 +526,9 @@ void Insert(struct tree_node* root){
             tail->type.array.type_ele = cur->father->first_child->type;
         }
 
-        HashTableNode* node = Hash_Find(&Hash_table, sym);
+        HashTableNode* node = Stack_top_find(page_stack, sym);
         if(node==NULL || node->symbol.kind==FUNCTIONN){
-            Hash_Add(&Hash_table, sym);
+            Hash_Add(Stack_top(page_stack), sym);
         }
         else{
             if(judge==VARIABLEE){

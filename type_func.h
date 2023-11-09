@@ -23,7 +23,7 @@ struct Type_def{
 typedef struct Type_def Type;
 
 struct Field_def{
-    char name[20];
+    char name[40];
     struct Type_def* type_field;
     struct Field_def* nxt; 
 }; // 结构体的一个域
@@ -40,7 +40,7 @@ typedef struct{
 #define STRUCTT 2
 
 typedef struct{
-    char name[50];
+    char name[40];
     int kind;
     union{
         Type* sym_type;

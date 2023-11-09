@@ -1,4 +1,5 @@
 #include "translate.h"
+#include "Stack.h"
 
 extern int vari_cnt;
 extern int func_cnt;
@@ -6,8 +7,7 @@ extern int array_cnt;
 extern int label_cnt;
 extern int add_cnt;
 extern InterCodeNode *CodeList;
-extern HashTable Hash_table;
-
+extern Stack* page_stack;
 
 Operand new_label(){
     Operand new;
@@ -55,7 +55,7 @@ void Trans_Exp(struct tree_node *root, Operand opde){
         else if(strcmp(root->first_child->name, "ID")==0){
             Symbol sym;
             strcpy(sym.name, root->first_child->compos.id);
-            HashTableNode *cur = Hash_Find(&Hash_table, sym);
+            HashTableNode *cur = Stack_find(page_stack, sym);
             op2.kind = OP_VARI;
             assert(cur!=NULL);
             op2.u.no_vari = cur->symbol.rank;
@@ -121,7 +121,7 @@ void Trans_Exp(struct tree_node *root, Operand opde){
             if(root->first_child->cnt_child==1 && strcmp(root->first_child->first_child->name, "ID")==0){
                 Symbol sym;
                 strcpy(sym.name, root->first_child->first_child->compos.id);
-                HashTableNode *cur = Hash_Find(&Hash_table, sym);
+                HashTableNode *cur = Stack_find(page_stack, sym);
                 op1.kind = OP_VARI;
                 op1.u.no_vari = cur->symbol.rank;
 
@@ -146,7 +146,7 @@ void Trans_Exp(struct tree_node *root, Operand opde){
         else if(strcmp(midname, "LP")==0){
             Symbol sym;
             strcpy(sym.name, root->first_child->compos.id);
-            HashTableNode *cur = Hash_Find(&Hash_table, sym);
+            HashTableNode *cur = Stack_find(page_stack, sym);
 
             if(strcmp(cur->symbol.name, "read")==0){
                 Add_InterCode(CodeList, Gen_Code(READ, opde, empty, empty, size, rel));
@@ -185,7 +185,7 @@ void Trans_Exp(struct tree_node *root, Operand opde){
         if(strcmp(root->first_child->name, "ID")==0){ // call a function
             Symbol sym;
             strcpy(sym.name, root->first_child->compos.id);
-            HashTableNode *symnode = Hash_Find(&Hash_table, sym);
+            HashTableNode *symnode = Stack_find(page_stack, sym);
 
             listnode* arg_list = NULL;
             Trans_Args(child_of_no(3, root), &arg_list);
@@ -389,7 +389,7 @@ void Trans_Dec(struct tree_node *root){
 
         Symbol sym;
         strcpy(sym.name, root->first_child->first_child->compos.id);
-        HashTableNode *cur = Hash_Find(&Hash_table, sym);
+        HashTableNode *cur = Stack_find(page_stack, sym);
         Operand op1;
         op1.kind = OP_VARI;
         op1.u.no_vari = cur->symbol.rank;
@@ -411,7 +411,7 @@ void Trans_Args(struct tree_node *root, listnode **arg_list){
     if(root->first_child->type->kind==ARRAYY){
         Symbol sym;
         strcpy(sym.name, root->first_child->first_child->compos.id);
-        HashTableNode *arr = Hash_Find(&Hash_table, sym);
+        HashTableNode *arr = Stack_find(page_stack, sym);
 
         t1.kind = OP_ARRAY;
         t1.u.no_array = arr->symbol.rank;
@@ -451,7 +451,7 @@ void Trans_VarDec(struct tree_node *root, int source, int size){
             Operand t1 = new_temp();
             Symbol sym;
             strcpy(sym.name, root->first_child->compos.id);
-            HashTableNode *cur = Hash_Find(&Hash_table, sym);
+            HashTableNode *cur = Stack_find(page_stack, sym);
             t1.u.no_vari = cur->symbol.rank;
 
             Add_InterCode(CodeList, Gen_Code(PARAM, t1, empty, empty, size, rel));
@@ -463,7 +463,7 @@ void Trans_VarDec(struct tree_node *root, int source, int size){
             Operand t1 = new_add();
             Symbol sym;
             strcpy(sym.name, find_id->compos.id);
-            HashTableNode *arr = Hash_Find(&Hash_table, sym);
+            HashTableNode *arr = Stack_find(page_stack, sym);
 
             arr->symbol.rank = t1.u.no_add;
             Add_InterCode(CodeList, Gen_Code(PARAM, t1, empty, empty, size, rel));
@@ -476,7 +476,7 @@ void Trans_VarDec(struct tree_node *root, int source, int size){
                 // declare an array
                 Symbol sym;
                 strcpy(sym.name, root->first_child->compos.id);
-                HashTableNode *cur = Hash_Find(&Hash_table, sym);
+                HashTableNode *cur = Stack_find(page_stack, sym);
                 assert(cur!=NULL);
 
                 Operand op;
@@ -499,7 +499,7 @@ void Trans_Array(struct tree_node *root, Operand opde){
     while(strcmp(cur->name, "ID")!=0) cur = cur->first_child;
     Symbol sym;
     strcpy(sym.name, cur->compos.id);
-    HashTableNode *arr = Hash_Find(&Hash_table, sym);
+    HashTableNode *arr = Stack_find(page_stack, sym);
 
     assert(arr->symbol.kind==VARIABLEE && arr->symbol.prop.sym_type->kind==ARRAYY);
 

@@ -18,6 +18,14 @@ unsigned int Hash_func(char* str){
     return val;
 }
 
+HashTable* Hash_Init(){
+    HashTable* hash_table = (HashTable*)malloc(sizeof(HashTable)) ;
+    for(int i=0; i<16384; i++){
+        hash_table->table[i] = NULL;
+    }
+    return hash_table;
+}
+
 void Hash_Add(HashTable* table, Symbol sym){
 
     switch(sym.kind){

@@ -53,7 +53,7 @@ ExtDef : Specifier ExtDecList SEMI {struct tree_node* p[3]={$1,$2,$3}; $$=father
     | Specifier ExtDecList error SEMI 
     | Specifier error SEMI 
     | Specifier error CompSt 
-    | Specifier FunDec error
+    | Specifier FunDec error SEMI
     | error SEMI
     ;
 

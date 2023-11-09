@@ -6,6 +6,7 @@
 #include "ParseTree.h"
 #include "Hash.h"
 #include "translate.h"
+#include "Stack.h"
 #include "type_func.h"
 #include "targetcode.h"
 
@@ -23,38 +24,38 @@ int add_cnt = 0;
 
 InterCodeNode *CodeList = NULL;
 struct tree_node* ROOT = NULL; // the root of the parse tree
-extern HashTable Hash_table;
-
 Type iint; // global define of type int
 
-void initiate(){
-    iint.kind = BASEE;
-    iint.type.base = INTT;
+Stack* page_stack;
 
-    Symbol sym_read;
-    sym_read.kind = FUNCTIONN;
-    strcpy(sym_read.name, "read");
-    sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
-    sym_read.prop.sym_func->Argc_cnt = 0;
-    sym_read.prop.sym_func->Argv = NULL;
-    sym_read.prop.sym_func->retn = &iint;
+// void initiate(){
+//     iint.kind = BASEE;
+//     iint.type.base = INTT;
 
-    Symbol sym_write;
-    sym_write.kind = FUNCTIONN;
-    strcpy(sym_write.name, "write");
-    sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
-    sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
-    sym_write.prop.sym_func->Argc_cnt = 1;
-    sym_write.prop.sym_func->Argv->type_field = &iint;
-    sym_write.prop.sym_func->Argv->nxt = NULL;
-    sym_read.prop.sym_func->retn = NULL;
+//     Symbol sym_read;
+//     sym_read.kind = FUNCTIONN;
+//     strcpy(sym_read.name, "read");
+//     sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
+//     sym_read.prop.sym_func->Argc_cnt = 0;
+//     sym_read.prop.sym_func->Argv = NULL;
+//     sym_read.prop.sym_func->retn = &iint;
 
-    Hash_Add(&Hash_table, sym_read);
-    Hash_Add(&Hash_table, sym_write);
+//     Symbol sym_write;
+//     sym_write.kind = FUNCTIONN;
+//     strcpy(sym_write.name, "write");
+//     sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
+//     sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
+//     sym_write.prop.sym_func->Argc_cnt = 1;
+//     sym_write.prop.sym_func->Argv->type_field = &iint;
+//     sym_write.prop.sym_func->Argv->nxt = NULL;
+//     sym_read.prop.sym_func->retn = NULL;
 
-    CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
-    CodeList->next = NULL;
-}
+//     Hash_Add(&Hash_table, sym_read);
+//     Hash_Add(&Hash_table, sym_write);
+
+//     CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
+//     CodeList->next = NULL;
+// }
 
 int main(int argc, char** argv){
     FILE* fin = fopen(argv[1], "r");
@@ -62,7 +63,8 @@ int main(int argc, char** argv){
         perror(argv[1]);
         return 1;
     }
-    
+
+    page_stack = Stack_init();
 
     yyrestart(fin);
     // yydebug = 1;
