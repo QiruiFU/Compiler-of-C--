@@ -28,34 +28,34 @@ Type iint; // global define of type int
 
 Stack* page_stack;
 
-// void initiate(){
-//     iint.kind = BASEE;
-//     iint.type.base = INTT;
+void initiate(){
+    iint.kind = BASEE;
+    iint.type.base = INTT;
 
-//     Symbol sym_read;
-//     sym_read.kind = FUNCTIONN;
-//     strcpy(sym_read.name, "read");
-//     sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
-//     sym_read.prop.sym_func->Argc_cnt = 0;
-//     sym_read.prop.sym_func->Argv = NULL;
-//     sym_read.prop.sym_func->retn = &iint;
+    Symbol sym_read;
+    sym_read.kind = FUNCTIONN;
+    strcpy(sym_read.name, "read");
+    sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
+    sym_read.prop.sym_func->Argc_cnt = 0;
+    sym_read.prop.sym_func->Argv = NULL;
+    sym_read.prop.sym_func->retn = &iint;
 
-//     Symbol sym_write;
-//     sym_write.kind = FUNCTIONN;
-//     strcpy(sym_write.name, "write");
-//     sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
-//     sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
-//     sym_write.prop.sym_func->Argc_cnt = 1;
-//     sym_write.prop.sym_func->Argv->type_field = &iint;
-//     sym_write.prop.sym_func->Argv->nxt = NULL;
-//     sym_read.prop.sym_func->retn = NULL;
+    Symbol sym_write;
+    sym_write.kind = FUNCTIONN;
+    strcpy(sym_write.name, "write");
+    sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
+    sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
+    sym_write.prop.sym_func->Argc_cnt = 1;
+    sym_write.prop.sym_func->Argv->type_field = &iint;
+    sym_write.prop.sym_func->Argv->nxt = NULL;
+    sym_read.prop.sym_func->retn = NULL;
 
-//     Hash_Add(&Hash_table, sym_read);
-//     Hash_Add(&Hash_table, sym_write);
+    Hash_Add(Stack_top(page_stack), sym_read);
+    Hash_Add(Stack_top(page_stack), sym_write);
 
-//     CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
-//     CodeList->next = NULL;
-// }
+    CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
+    CodeList->next = NULL;
+}
 
 int main(int argc, char** argv){
     FILE* fin = fopen(argv[1], "r");
@@ -72,26 +72,26 @@ int main(int argc, char** argv){
 
     if(cnt_False == 0){
         // print_tree(ROOT, 0);
-        // initiate();
-        // int exist = ExistStruct(ROOT);
-        // if(exist==1){
-        //     fclose(fin);
-        //     printf("Cannot translate: Code contains variables or parameters of structure type.\n");
-        //     return 0;
-        // }
-        // FILE* fout = fopen(argv[2], "w");
-        // if(!fout){
-        //     perror(argv[2]);
-        //     return 1;
-        // }
+        initiate();
+        int exist = ExistStruct(ROOT);
+        if(exist==1){
+            fclose(fin);
+            printf("Cannot translate: Code contains variables or parameters of structure type.\n");
+            return 0;
+        }
+        FILE* fout = fopen(argv[2], "w");
+        if(!fout){
+            perror(argv[2]);
+            return 1;
+        }
         Check(ROOT);
-        // Translate(ROOT);
+        Translate(ROOT);
         
-        // // Print_List(CodeList, fout);
+        Print_List(CodeList, fout);
     
         // TgtCodeList(CodeList, fout);
         fclose(fin);
-        // fclose(fout);
+        fclose(fout);
     }
 
     return 0;

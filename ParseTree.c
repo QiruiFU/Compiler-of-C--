@@ -76,10 +76,12 @@ void Check(struct tree_node* root){
 
     root->anaylised = 1;
 
+    // printf("%s in\n", root->name);
+
 
     if(strcmp(root->name, "ID")==0 && strcmp(root->father->name, "FunDec")==0){
-        HashTable* new_symbol_table = Hash_Init();
-        Stack_push(page_stack, new_symbol_table);
+        // HashTable* new_symbol_table = Hash_Init();
+        // Stack_push(page_stack, new_symbol_table);
 
         struct tree_node *temp = root->brother->brother;
         if(strcmp(temp->name, "VarList")==0) Check(temp);
@@ -87,17 +89,17 @@ void Check(struct tree_node* root){
         assert(strcmp(temp->name, "CompSt")==0);
         Check(temp);
 
-        Stack_pop(page_stack);
+        // Stack_pop(page_stack);
     }
     else if(strcmp(root->name, "CompSt")==0){
         if(root->father->cnt_child == 1){
-            HashTable* new_symbol_table = Hash_Init();
-            Stack_push(page_stack, new_symbol_table);
+            // HashTable* new_symbol_table = Hash_Init();
+            // Stack_push(page_stack, new_symbol_table);
             if(root->cnt_child > 2){
                 Check(child_of_no(2, root));
                 Check(child_of_no(3, root));
             }
-            Stack_pop(page_stack);
+            // Stack_pop(page_stack);
         }
         else{
             assert(root->father->cnt_child == 3); // function body
@@ -392,7 +394,7 @@ void Check(struct tree_node* root){
         root->type = (Type*)malloc(sizeof(Type));
     }
 
-    // printf("%s %d out\n", root->name, page_stack->size);
+    // printf("%s out\n", root->name);
     
 
 }
