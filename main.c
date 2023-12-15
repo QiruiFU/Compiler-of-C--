@@ -87,9 +87,9 @@ int main(int argc, char** argv){
         Check(ROOT);
         Translate(ROOT);
         
-        Print_List(CodeList, fout);
-    
-        // TgtCodeList(CodeList, fout);
+        // Print_List(CodeList, fout);
+        // printf("here\n");
+        TgtCodeList(CodeList, fout);
         fclose(fin);
         fclose(fout);
     }
