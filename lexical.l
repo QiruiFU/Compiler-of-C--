@@ -59,7 +59,7 @@ PosNum [1-9]
     
     }
 
-[\t ]+ {}
+[\t \r]+ {}
 \n {lineno++; yycolumn=1;}
 ";" { yylval=new_node("SEMI", lineno, yytext); return SEMI;}
 "," { yylval=new_node("COMMA", lineno, yytext); return COMMA;}

@@ -59,8 +59,14 @@ void initiate(){
 
 int main(int argc, char** argv){
     FILE* fin = fopen(argv[1], "r");
+    FILE* fout = fopen(argv[2], "w");
+
     if (!fin){
         perror(argv[1]);
+        return 1;
+    }
+    if (!fout){
+        perror(argv[2]);
         return 1;
     }
 
@@ -71,28 +77,27 @@ int main(int argc, char** argv){
     yyparse();
 
     if(cnt_False == 0){
-        // print_tree(ROOT, 0);
         initiate();
         int exist = ExistStruct(ROOT);
         if(exist==1){
-            fclose(fin);
             printf("Cannot translate: Code contains variables or parameters of structure type.\n");
+            fclose(fin);
+            fclose(fout);
             return 0;
         }
-        FILE* fout = fopen(argv[2], "w");
-        if(!fout){
-            perror(argv[2]);
-            return 1;
-        }
+
         Check(ROOT);
         Translate(ROOT);
-        
-        // Print_List(CodeList, fout);
-        // printf("here\n");
+
+        FILE* ir = fopen("ir.ir", "w");
+        Print_List(CodeList, ir);
+        fclose(ir);
+
         TgtCodeList(CodeList, fout);
-        fclose(fin);
-        fclose(fout);
+
     }
+    fclose(fin);
+    fclose(fout);
 
     return 0;
 }
