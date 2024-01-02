@@ -22,8 +22,8 @@ struct TreeNodeDef{
 }; // a typical structure of tree
 typedef struct TreeNodeDef TreeNode;
 
-TreeNode* TreeNodeInit(char *node_name, int line, char *text);
-TreeNode* Fatherize(char *node_name, int line, int cnt_child, TreeNode* children[7]); // generate a father node of children nodes
+TreeNode* TreeNodeInit(char node_name[], int line, char text[]);
+TreeNode* Fatherize(char node_name[], int line, int cnt_child, TreeNode* children[7]); // generate a father node of children nodes
 TreeNode* kthChild(TreeNode* self, int k); // return kth child node
 
 struct ParseTreeDef{
