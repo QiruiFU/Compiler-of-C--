@@ -1,2 +1,0 @@
-#define COMMENT
-// #define STRUCTEQU

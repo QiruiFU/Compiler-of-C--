@@ -1,75 +1,149 @@
-#include "ParseTree.h"
-#include "Stack.h"
+#include "parse-tree.h"
+// #include "Stack.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<assert.h>
 
-extern Stack* page_stack;
+// extern Stack* page_stack;
 
-struct tree_node* fatherize(char* name, int line, int cnt_child, struct tree_node* children[20]){
-    // build a new node, which is the father of given nodes
-    assert(cnt_child>=1);
-    struct tree_node* new_p = (struct tree_node*)malloc(sizeof(struct tree_node));
-    strcpy(new_p->name, name);
-    new_p->first_line = line;
-    new_p->father = NULL;
-    new_p->brother = NULL;
-    new_p->compos.val_int = 0;
-    new_p->first_child = children[0];
-    new_p->cnt_child = 1;
-
-    struct tree_node* cur = new_p->first_child;
-    cur->father = new_p;
-    assert(cur->brother == NULL);
-    for(int i=1; i<cnt_child; i++){
-        if(children[i]==NULL) continue;
-        cur->brother = children[i];
-        cur = cur->brother;
-        cur->father = new_p;
-        new_p->cnt_child++;
-        assert(cur->brother == NULL);
+int Hex2Dec(char ch){
+    if(ch>='0' && ch<='9'){
+        return ch - '0';
     }
-
-    return new_p;
-}
-
-void print_tree(struct tree_node* root, int depth){
-    for(int i=0; i<depth*2; i++){
-        printf(" ");
+    else if(ch>='a' && ch<='f'){
+        return ch - 'a' + 10;
     }
-
-    if(root->first_child==NULL){
-        printf("%s", root->name);
-        if(strcmp(root->name, "ID")==0) printf(": %s\n",root->compos.id);
-        else if(strcmp(root->name, "INT")==0) printf(": %d\n",root->compos.val_int);
-        else if(strcmp(root->name, "FLOAT")==0) printf(": %f\n",root->compos.val_float);
-        else if(strcmp(root->name, "TYPE")==0) printf(": %s\n",root->compos.id);
-        else printf("\n");
+    else if(ch>='A' && ch<='F'){
+        return ch - 'A' + 10;
     }
     else{
-        printf("%s (%d)\n", root->name, root->first_line);
-    }
-    
-    struct tree_node* cur = root->first_child;
-    while(cur!=NULL){
-        print_tree(cur, depth+1);
-        cur = cur->brother;
+        printf("wrong hex %c\n", ch);
+        assert(0);
     }
 }
 
+TreeNode* TreeNodeInit(char node_name[], int line, char text[]){
+    TreeNode* self = (TreeNode*)malloc(sizeof(TreeNode));
+    self->node_name_ = (char*)malloc(strlen(node_name)+1);
+    strcpy(self->node_name_, node_name);
+    self->line_ = line;
+    self->cnt_child_ = 0;
+    self->father_ = NULL;
+    self->first_child_ = NULL;
+    self->brother_ = NULL;
 
-struct tree_node* child_of_no(int x, struct tree_node* root){
-    assert(x<=root->cnt_child && x>=1);
-    struct tree_node* cur = root->first_child;
+    if(strcmp(node_name, "DECE")==0){
+        self->compos_.val_int_ = atoi(text);
+        strcpy(self->node_name_, "INT");
+    }
+    else if(strcmp(node_name, "OCT")==0){
+        int l = strlen(text)-1;
+        int res = 0, base = 1;
+        while(l){
+            res += (text[l]-'0') * base;
+            base *= 8;
+            l--;
+        }
+        self->compos_.val_int_ = res;
+        strcpy(self->node_name_, "INT");
+    }
+    else if(strcmp(node_name, "HEX")==0){
+        int l = strlen(text)-1;
+        int res = 0, base = 1;
+        while(l>1){
+            res += Hex2Dec(text[l])*base;
+            base *= 16;
+            l--;
+        }
+        self->compos_.val_int_ = res;
+        strcpy(self->node_name_, "INT");
+    }
+    else if(strcmp(node_name, "FLOAT")==0){
+        self->compos_.val_float_ = (float)atof(text);
+    }
+    else{
+        self->compos_.id_ = (char*)malloc(strlen(text)+1);
+        strcpy(self->compos_.id_, text);
+    }
+
+    return self;
+}
+
+TreeNode* Fatherize(char node_name[], int line, int cnt_child, TreeNode* children[7]){
+    assert(cnt_child>=1);
+    TreeNode* self = (TreeNode*)malloc(sizeof(TreeNode));
+    self->node_name_ = (char*)malloc(strlen(node_name)+1);
+    strcpy(self->node_name_, node_name);
+    self->line_ = line;
+    self->father_ = NULL;
+    self->brother_ = NULL;
+    self->compos_.val_int_ = 0;
+    self->first_child_ = children[0];
+    self->cnt_child_ = 1;
+
+    TreeNode* cur = self->first_child_;
+    cur->father_ = self;
+    assert(cur->brother_ == NULL);
+    for(int i=1; i<cnt_child; i++){
+        if(children[i]==NULL) continue;
+        cur->brother_ = children[i];
+        cur = cur->brother_;
+        cur->father_ = self;
+        self->cnt_child_++;
+        assert(cur->brother_ == NULL);
+    }
+
+    return self;
+}
+
+TreeNode* kthChild(TreeNode* self, int k){
+    assert(k <= self->cnt_child_ && k >= 1);
+    TreeNode* cur = self->first_child_;
     int now = 1;
-    while(now!=x){
-        cur = cur->brother;
+    while(now != k){
+        cur = cur->brother_;
         now++;
     }
     return cur;
 }
 
+ParseTree* ParseTreeInit(TreeNode* root){
+    ParseTree* self = (ParseTree*)malloc(sizeof(ParseTree));
+    self->root_ = root;
+    return self;
+}
+
+void PrintNodes(TreeNode* node, int depth){
+    for(int i=0; i<depth*2; i++){
+        printf(" ");
+    }
+
+    if(node->first_child_ == NULL){ // leaf node
+        printf("%s", node->node_name_);
+        if(strcmp(node->node_name_, "ID")==0) printf(": %s\n",node->compos_.id_);
+        else if(strcmp(node->node_name_, "INT")==0) printf(": %d\n",node->compos_.val_int_);
+        else if(strcmp(node->node_name_, "FLOAT")==0) printf(": %f\n",node->compos_.val_float_);
+        else if(strcmp(node->node_name_, "TYPE")==0) printf(": %s\n",node->compos_.id_);
+        else printf("\n");
+    }
+    else{
+        printf("%s (%d)\n", node->node_name_, node->line_);
+        TreeNode* cur = node->first_child_;
+        while(cur != NULL){
+            PrintNodes(cur, depth+1);
+            cur = cur->brother_;
+        }
+    }
+}
+
+void PrintTree(ParseTree* self){
+    PrintNodes(self->root_, 0);
+}
+
+
+
+/*
 void Check(struct tree_node* root){
     if(root==NULL) return;
     if(root->anaylised == 1) return;
@@ -560,3 +634,4 @@ int ExistStruct(struct tree_node *root){
     }
     return 0;
 }
+*/
