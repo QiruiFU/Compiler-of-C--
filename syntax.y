@@ -104,11 +104,12 @@ ParamDec : Specifier VarDec {TreeNode* p[2]={$1,$2}; $$=Fatherize("ParamDec", @$
 
 /*=========== Statements ========*/
 
-CompSt : LC DefList StmtList RC {TreeNode* p[4]={$1,$2,$3,$4}; $$=Fatherize("CompSt", @$.first_line, 4, p);}
+CompSt : LC StmtList RC {TreeNode* p[4]={$1,$2,$3}; $$=Fatherize("CompSt", @$.first_line, 3, p);}
     | LC error RC
     ;
 
 StmtList : Stmt StmtList {TreeNode* p[2]={$1,$2}; $$=Fatherize("StmtList", @$.first_line, 2, p);}
+    | Def StmtList {TreeNode* p[2]={$1,$2}; $$=Fatherize("StmtList", @$.first_line, 2, p);}
     |  /* empty */ {$$=NULL;}
     ;
 
