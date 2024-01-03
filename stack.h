@@ -1,7 +1,7 @@
 #ifndef STACK
 #define STACK
 
-#include "Hash.h"
+#include "hash.h"
 #include<stdlib.h>
 #include<assert.h>
 

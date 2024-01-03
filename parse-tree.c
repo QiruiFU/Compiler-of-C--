@@ -1,5 +1,5 @@
 #include "parse-tree.h"
-#include "Stack.h"
+#include "stack.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>

@@ -6,7 +6,7 @@
 #include "parse-tree.h"
 // #include "Hash.h"
 // #include "translate.h"
-#include "Stack.h"
+#include "stack.h"
 // #include "type_func.h"
 // #include "targetcode.h"
 
