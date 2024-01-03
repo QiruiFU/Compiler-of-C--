@@ -20,9 +20,9 @@ typedef struct Stack_def Stack;
 
 Stack* StackInit();
 void StackPush(Stack* self, HashTable* table);
-HashTable* StackTop(Stack* stack);
-void StackPop(Stack* stack);
-HashTableNode* StackFind(Stack* stack, const Symbol sym);
-HashTableNode* StackTopFind(Stack* stack, const Symbol sym);
+HashTable* StackTop(Stack* self);
+void StackPop(Stack* self);
+HashTableNode* StackFind(Stack* self, const Symbol sym);
+HashTableNode* StackTopFind(Stack* self, const Symbol sym);
 
 #endif

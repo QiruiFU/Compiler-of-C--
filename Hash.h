@@ -14,7 +14,7 @@ typedef struct{
 }HashTable;
 
 HashTable* HashInit();
-void HashAdd(HashTable* table, Symbol sym);
-HashTableNode* HashFind(HashTable* table, Symbol sym);
+void HashAdd(HashTable* self, Symbol sym);
+HashTableNode* HashFind(HashTable* self, Symbol sym);
 
 #endif
