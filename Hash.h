@@ -4,13 +4,13 @@
 #include "type-symbol.h"
 
 struct HashTableNode_def{
-    Symbol symbol;
+    Symbol symbol_;
     struct HashTableNode_def* nxt;
 };
 typedef struct HashTableNode_def HashTableNode;
 
 typedef struct{
-    HashTableNode* table[16384];
+    HashTableNode* table_[16384];
 }HashTable;
 
 HashTable* HashInit();

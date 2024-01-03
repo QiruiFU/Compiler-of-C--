@@ -8,18 +8,18 @@ struct Field_def{
 }; // a field of structure
 typedef struct Field_def Field;
 
-struct Function_Def{
-    Type* retn;
+struct Function_def{
+    struct Type_def* retn;
     int Argc_cnt;
-    Field* Argv;
+    struct Field_def* Argv;
 };
-typedef struct Function_Def Function;
+typedef struct Function_def Function;
 
 // define of type
 struct Type_def{
     enum { BASIC, ARRAY, STRUCTURE } kind;
     union{
-        enum {INT, FLOAT} basic; // int or float
+        enum {INTT, FLOATT} basic; // int or float
         struct{
             struct Type_def* elem;
             int size;
@@ -33,16 +33,16 @@ struct Type_def{
 typedef struct Type_def Type;
 
 // define of symbol
-struct  Symbol_Def{
+struct  Symbol_def{
     char* name;
-    enum {VARIABLE, FUNCTION, STRUCT} kind;
+    enum {VARIABLE, FUNCTION, STRUCTT} kind;
     union{
         Type* sym_type;
         Function* sym_func;
     }u;
     // int rank;
 };
-typedef struct Symbol_Def Symbol; 
+typedef struct Symbol_def Symbol; 
 
 int TypeMatch(Type* type_a, Type* type_b);
 Field* HasFld(Field* fld, char* name);

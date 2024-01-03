@@ -22,7 +22,8 @@ int TypeMatch(Type* type_a, Type* type_b){
     else if(type_a->kind == STRUCTURE){
         if(type_a->u.structure.struct_name==NULL || type_b->u.structure.struct_name==NULL) return 0;
         else {
-            return 1 - strcmp(type_a->u.structure.struct_name, type_b->u.structure.struct_name);
+            if(strcmp(type_a->u.structure.struct_name, type_b->u.structure.struct_name)==0) return 1;
+            else return 0;
         }
     }
     else assert(0);

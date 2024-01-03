@@ -21,7 +21,7 @@ unsigned int HashFunc(char* str){
 HashTable* HashInit(){
     HashTable* self = (HashTable*)malloc(sizeof(HashTable)) ;
     for(int i=0; i<16384; i++){
-        self->table[i] = NULL;
+        self->table_[i] = NULL;
     }
     return self;
 }
@@ -50,22 +50,22 @@ void HashAdd(HashTable* self, Symbol sym){
 
     unsigned int val = HashFunc(sym.name);
     HashTableNode* p = (HashTableNode*)malloc(sizeof(HashTableNode));
-    p->symbol = sym;
+    p->symbol_ = sym;
     p->nxt = NULL;
 
-    HashTableNode* cur = self->table[val];
-    if(cur==NULL) self->table[val] = p;
+    HashTableNode* cur = self->table_[val];
+    if(cur==NULL) self->table_[val] = p;
     else{ // add to list directly
         p->nxt = cur;
-        self->table[val] = p;
+        self->table_[val] = p;
     }
 }
 
 HashTableNode* HashFind(HashTable* self, Symbol sym){
     unsigned int val = HashFunc(sym.name);
-    HashTableNode* cur = self->table[val];
+    HashTableNode* cur = self->table_[val];
     while(cur != NULL){
-        if(strcmp(cur->symbol.name, sym.name)==0){
+        if(strcmp(cur->symbol_.name, sym.name)==0){
             break;
         }
         cur = cur->nxt;

@@ -6,7 +6,7 @@
 #include "parse-tree.h"
 // #include "Hash.h"
 // #include "translate.h"
-// #include "Stack.h"
+#include "Stack.h"
 // #include "type_func.h"
 // #include "targetcode.h"
 
@@ -26,7 +26,8 @@ extern int yyparse();
 ParseTree *parse_tree; // parse tree
 // Type iint; // global define of type int
 
-// Stack* page_stack;
+Stack* page_stack;
+int verbose = 0;
 
 // void initiate(){
 //     iint.kind = BASEE;
@@ -70,14 +71,17 @@ int main(int argc, char** argv){
     //     return 1;
     // }
 
-    // page_stack = Stack_init();
+    page_stack = StackInit();
 
     yyrestart(fin);
     // yydebug = 1;
     yyparse();
 
     if(cnt_error == 0){
-        PrintTree(parse_tree);
+        if(verbose==1){
+            PrintTree(parse_tree);
+        }
+        ProcessTree(parse_tree);
         // initiate();
         // int exist = ExistStruct(ROOT);
         // if(exist==1){
@@ -87,7 +91,6 @@ int main(int argc, char** argv){
         //     return 0;
         // }
 
-        // Check(ROOT);
         // Translate(ROOT);
 
         // FILE* ir = fopen("ir.ir", "w");
