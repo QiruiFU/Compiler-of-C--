@@ -1,62 +1,60 @@
-// #include "Stack.h"
+#include "Stack.h"
 
-// Stack* Stack_init(){
-//     Stack* stack = (Stack*)malloc(sizeof(Stack));
-//     stack->size = 1;
-//     stack->top = (StackNode*)malloc(sizeof(StackNode));
-//     stack->top->table = Hash_Init();
-//     stack->top->nxt = stack->top->prv = NULL;
-//     return stack;
-// }
+Stack* StackInit(){
+    Stack* self = (Stack*)malloc(sizeof(Stack));
+    self->size = 1; // an empty symbol table at the bottom
+    self->top = (StackNode*)malloc(sizeof(StackNode));
+    self->top->table = Hash_Init();
+    self->top->nxt = self->top->prv = NULL;
+    return self;
+}
 
-// void Stack_push(Stack* stack, HashTable* table){
-//     StackNode* new_p = (StackNode*)malloc(sizeof(StackNode));
-//     new_p->nxt = NULL;
-//     new_p->prv = stack->top;
-//     new_p->table = table;
+void StackPush(Stack* self, HashTable* table){
+    StackNode* new_p = (StackNode*)malloc(sizeof(StackNode));
+    new_p->nxt = NULL;
+    new_p->prv = self->top;
+    new_p->table = table;
 
-//     stack->top->nxt = new_p;
-//     stack->top = new_p;
-//     stack->size++;
-// }
+    self->top->nxt = new_p;
+    self->top = new_p;
+    self->size++;
+}
 
-// HashTable* Stack_top(Stack* stack){
-//     assert(stack->size > 0);
-//     return stack->top->table;
-// }
+HashTable* StackTop(Stack* self){
+    assert(self->size > 0);
+    return self->top->table;
+}
 
-// void Stack_pop(Stack* stack){
-//     assert(stack->size > 0);
-//     stack->size--;
-//     StackNode* cur_top = stack->top;
-//     stack->top = stack->top->prv;
-//     stack->top->nxt = NULL;
-//     free(cur_top);
-//     // TODO : memory leak here
-// }
+void StackPop(Stack* self){
+    assert(self->size > 0);
+    self->size--;
+    StackNode* cur_top = self->top;
+    self->top = self->top->prv;
+    self->top->nxt = NULL;
+    free(cur_top);
+    // TODO : memory leak here
+}
 
-// HashTableNode* Stack_find(Stack* stack, const Symbol sym){
-//     if(stack->size <= 0){
-//         return NULL;
-//     }
+HashTableNode* StackFind(Stack* self, const Symbol sym){
+    if(self->size <= 0){
+        return NULL;
+    }
 
-//     StackNode* cur_node = stack->top;
-//     HashTableNode* result = NULL;
-//     while(cur_node){
-//         result = Hash_Find(cur_node->table, sym);
-//         if(result){
-//             return result;
-//         }
-//         cur_node = cur_node->prv;
-//     }
-//     return NULL;
-// }
+    StackNode* cur_page = self->top;
+    HashTableNode* result = StackTop(self);
+    while(cur_page){
+        result = HashFind(cur_page->table, sym);
+        if(result){
+            break;
+        }
+        cur_page = cur_page->prv;
+    }
+    return result;
+}
 
-// HashTableNode* Stack_top_find(Stack* stack, const Symbol sym){
-//     if(stack->size <= 0){
-//         return NULL;
-//     }
-
-//     HashTableNode* result = Hash_Find(Stack_top(stack), sym);
-//     return result;
-// }
+HashTableNode* StackTopFind(Stack* self, const Symbol sym){
+    if(self->size <= 0){
+        return NULL;
+    }
+    return HashFind(StackTop(self), sym);
+}
