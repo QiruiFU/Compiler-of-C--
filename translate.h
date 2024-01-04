@@ -3,24 +3,14 @@
 
 // #include<stdio.h>
 // #include "intercode.h"
-// #include "ParseTree.h"
-// #include "Hash.h"
-// #include "type_func.h"
+// #include "parse-tree.h"
+// #include "hash.h"
+// #include "stack.h"
+// #include "type-symbol.h"
+// #include "list.h"
 
 // #define SC_FUNC 1
 // #define SC_DEC 2
-
-// struct listnode_def{
-//     Operand para;
-//     struct listnode_def *next;
-// };
-// typedef struct listnode_def listnode;
-
-// struct intlist_def{
-//     int val;
-//     struct intlist_def *next;
-// };
-// typedef struct intlist_def intlist;
 
 // void Translate(struct tree_node *root);
 // void Trans_Exp(struct tree_node *root, Operand opde);

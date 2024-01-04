@@ -16,18 +16,14 @@ extern int yydebug;
 extern void yyrestart(FILE*);
 extern int yyparse();
 
-// int vari_cnt = 0;
-// int func_cnt = 0;
-// int array_cnt = 0;
-// int label_cnt = 0;
-// int add_cnt = 0;
+int vari_cnt = 0;
+int label_cnt = 0;
 
 // InterCodeNode *CodeList = NULL;
 ParseTree *parse_tree; // parse tree
 // Type iint; // global define of type int
 
 Stack* page_stack;
-int verbose = 0;
 
 // void initiate(){
 //     iint.kind = BASEE;
@@ -78,10 +74,8 @@ int main(int argc, char** argv){
     yyparse();
 
     if(cnt_error == 0){
-        if(verbose==1){
-            PrintTree(parse_tree);
-        }
         ProcessTree(parse_tree);
+        // PrintTree(parse_tree);
         // initiate();
         // int exist = ExistStruct(ROOT);
         // if(exist==1){

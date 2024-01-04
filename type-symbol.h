@@ -40,7 +40,7 @@ struct  Symbol_def{
         Type* sym_type;
         Function* sym_func;
     }u;
-    // int rank;
+    int rank;
 };
 typedef struct Symbol_def Symbol; 
 

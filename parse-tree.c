@@ -102,6 +102,8 @@ void InsertSymbol(TreeNode* self){
         }
 
         sym.kind = VARIABLE;
+        vari_cnt++;
+        sym.rank = vari_cnt; // a new variable
         // declare a variable
         if(cur->father_->brother_==NULL || strcmp(cur->father_->brother_->node_name_, "LB")!=0){
             while(strcmp(cur->father_->first_child_->node_name_, "Specifier")!=0) cur = cur->father_;
@@ -154,7 +156,11 @@ void InsertSymbol(TreeNode* self){
 }
 
 void PreProcess(TreeNode* self){ // handle the stack of symbol tables
-    if(strcmp(self->node_name_, "ID")==0 && strcmp(self->father_->node_name_, "FunDec")==0){
+    if(strcmp(self->node_name_, "ID")==0 && strcmp(self->father_->node_name_, "FunDec")==0){ // declaring a function
+        // Symbol sym;
+        // sym.name = self->compos_.id_;
+        // HashAdd(StackTop(page_stack), sym);
+        
         HashTable* new_symbol_table = HashInit();
         StackPush(page_stack, new_symbol_table);
 
@@ -472,6 +478,19 @@ void CheckSemantics(TreeNode* self){
     }
 }
 
+void AssignNo(TreeNode *self){ // assign inter_no_ for variables
+    if(strcmp(self->node_name_, "ID")!=0) return;
+    Symbol sym;
+    sym.name = self->compos_.id_;
+    HashTableNode* node = StackFind(page_stack, sym);
+
+    if(node == NULL) return;
+
+    if(node->symbol_.kind == VARIABLE){
+        self->inter_no_ = node->symbol_.rank;
+    }
+}
+
 void ProcessNode(TreeNode* self){
     if(self == NULL) return;
     if(self->anaylised_ == 1) return;
@@ -492,6 +511,8 @@ void ProcessNode(TreeNode* self){
     if(self->type_ == NULL){ // if it is NULL, sometimes(there's error in .tmm) it causes FAULT
         self->type_ = (Type*)malloc(sizeof(Type));
     }
+
+    AssignNo(self);
 }
 
 int Hex2Dec(char ch){
@@ -553,7 +574,6 @@ TreeNode* TreeNodeInit(char node_name[], int line, char text[]){
         self->compos_.id_ = (char*)malloc(strlen(text)+1);
         strcpy(self->compos_.id_, text);
     }
-
     return self;
 }
 
@@ -608,10 +628,10 @@ void PrintNodes(TreeNode* node, int depth){
 
     if(node->first_child_ == NULL){ // leaf node
         printf("%s", node->node_name_);
-        if(strcmp(node->node_name_, "ID")==0) printf(": %s\n",node->compos_.id_);
-        else if(strcmp(node->node_name_, "INT")==0) printf(": %d\n",node->compos_.val_int_);
-        else if(strcmp(node->node_name_, "FLOAT")==0) printf(": %f\n",node->compos_.val_float_);
-        else if(strcmp(node->node_name_, "TYPE")==0) printf(": %s\n",node->compos_.id_);
+        if(strcmp(node->node_name_, "ID")==0) printf(": %s %d\n", node->compos_.id_, node->inter_no_);
+        else if(strcmp(node->node_name_, "INT")==0) printf(": %d\n", node->compos_.val_int_);
+        else if(strcmp(node->node_name_, "FLOAT")==0) printf(": %f\n", node->compos_.val_float_);
+        else if(strcmp(node->node_name_, "TYPE")==0) printf(": %s\n", node->compos_.id_);
         else printf("\n");
     }
     else{

@@ -4,6 +4,9 @@
 // #include "Hash.h"
 #include "type-symbol.h"
 
+extern int vari_cnt;
+extern int label_cnt;
+
 struct TreeNodeDef{
     char *node_name_;
     int cnt_child_;
@@ -19,6 +22,7 @@ struct TreeNodeDef{
     int anaylised_;
     Type* type_;
     int assignable_;
+    int inter_no_;
 }; // a typical structure of tree
 typedef struct TreeNodeDef TreeNode;
 

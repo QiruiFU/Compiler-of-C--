@@ -2,6 +2,7 @@
 #define HASH
 
 #include "type-symbol.h"
+#include<stdio.h>
 
 struct HashTableNode_def{
     Symbol symbol_;

@@ -181,7 +181,7 @@ void AddInterCode(InterCodeList* self, InterCode code){
 void PrintList(InterCodeList* self, FILE *f){
     InterCodeNode* cur = self->head_;
     while(cur!=NULL){
-        Print_Code(cur->node_, f);
+        PrintCode(cur->node_, f);
         cur = cur->next;
     }
     return;

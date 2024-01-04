@@ -1,5 +1,4 @@
 // #include "translate.h"
-// #include "Stack.h"
 
 // extern int vari_cnt;
 // extern int func_cnt;
