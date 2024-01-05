@@ -73,6 +73,6 @@ typedef struct InterCodeList_def InterCodeList;
 
 InterCodeList* CodeListInit();
 void AddInterCode(InterCodeList* self, InterCode code);
-void PrintList(InterCodeList* self, FILE* f);
+void PrintCodeList(InterCodeList* self, FILE* f);
 
 #endif

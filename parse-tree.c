@@ -102,8 +102,7 @@ void InsertSymbol(TreeNode* self){
         }
 
         sym.kind = VARIABLE;
-        vari_cnt++;
-        sym.rank = vari_cnt; // a new variable
+        sym.rank = ++vari_cnt; // a new variable
         // declare a variable
         if(cur->father_->brother_==NULL || strcmp(cur->father_->brother_->node_name_, "LB")!=0){
             while(strcmp(cur->father_->first_child_->node_name_, "Specifier")!=0) cur = cur->father_;
@@ -231,7 +230,7 @@ void CheckSemantics(TreeNode* self){
         Field* tail = NULL;
         TreeNode* cur = self; 
 
-        while(1){
+        while(1){ // TODO : what the hell is doing here
             if(tail==NULL){
                 self->type_->u.structure.field = cur->first_child_->type_->u.structure.field;
                 tail = self->type_->u.structure.field;
@@ -488,6 +487,7 @@ void AssignNo(TreeNode *self){ // assign inter_no_ for variables
 
     if(node->symbol_.kind == VARIABLE){
         self->inter_no_ = node->symbol_.rank;
+        self->type_ = node->symbol_.u.sym_type;
     }
 }
 

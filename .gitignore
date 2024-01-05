@@ -7,3 +7,4 @@ parser
 irsim
 inputs
 expects
+old_translate.c

@@ -2,10 +2,10 @@
 #include<stdlib.h>
 #include<string.h>
 #include<assert.h>
-// #include "intercode.h"
+#include "intercode.h"
 #include "parse-tree.h"
 // #include "Hash.h"
-// #include "translate.h"
+#include "translate.h"
 #include "stack.h"
 // #include "type_func.h"
 // #include "targetcode.h"
@@ -19,64 +19,62 @@ extern int yyparse();
 int vari_cnt = 0;
 int label_cnt = 0;
 
-// InterCodeNode *CodeList = NULL;
 ParseTree *parse_tree; // parse tree
-// Type iint; // global define of type int
+Stack *page_stack; // symbol table
+InterCodeList *inter_code_list;
+Type iint; // global define of type int
 
-Stack* page_stack;
+void initiate(){
+    iint.kind = BASIC;
+    iint.u.basic = INTT;
 
-// void initiate(){
-//     iint.kind = BASEE;
-//     iint.type.base = INTT;
+    Symbol sym_read;
+    sym_read.kind = FUNCTION;
+    sym_read.name = (char*)"read";
+    sym_read.u.sym_func = (Function*)malloc(sizeof(Function));
+    sym_read.u.sym_func->Argc_cnt = 0;
+    sym_read.u.sym_func->Argv = NULL;
+    sym_read.u.sym_func->retn = &iint;
 
-//     Symbol sym_read;
-//     sym_read.kind = FUNCTIONN;
-//     strcpy(sym_read.name, "read");
-//     sym_read.prop.sym_func = (Func*)malloc(sizeof(Func));
-//     sym_read.prop.sym_func->Argc_cnt = 0;
-//     sym_read.prop.sym_func->Argv = NULL;
-//     sym_read.prop.sym_func->retn = &iint;
+    Symbol sym_write;
+    sym_write.kind = FUNCTION;
+    sym_write.name = (char*)"write";
+    sym_write.u.sym_func = (Function*)malloc(sizeof(Function));
+    sym_write.u.sym_func->Argv = (Field*)malloc(sizeof(Field));
+    sym_write.u.sym_func->Argv->type = &iint;
+    sym_write.u.sym_func->Argv->nxt = NULL;
+    sym_write.u.sym_func->Argc_cnt = 1;
+    sym_write.u.sym_func->retn = NULL;
 
-//     Symbol sym_write;
-//     sym_write.kind = FUNCTIONN;
-//     strcpy(sym_write.name, "write");
-//     sym_write.prop.sym_func = (Func*)malloc(sizeof(Func));
-//     sym_write.prop.sym_func->Argv = (Field*)malloc(sizeof(Field));
-//     sym_write.prop.sym_func->Argc_cnt = 1;
-//     sym_write.prop.sym_func->Argv->type_field = &iint;
-//     sym_write.prop.sym_func->Argv->nxt = NULL;
-//     sym_read.prop.sym_func->retn = NULL;
-
-//     Hash_Add(Stack_top(page_stack), sym_read);
-//     Hash_Add(Stack_top(page_stack), sym_write);
-
-//     CodeList = (InterCodeNode*)malloc(sizeof(InterCodeNode));
-//     CodeList->next = NULL;
-// }
+    HashAdd(StackTop(page_stack), sym_read);
+    HashAdd(StackTop(page_stack), sym_write);
+}
 
 int main(int argc, char** argv){
     FILE* fin = fopen(argv[1], "r");
-    // FILE* fout = fopen(argv[2], "w");
+    FILE* fout = fopen(argv[2], "w");
 
     if (!fin){
         perror(argv[1]);
         return 1;
     }
-    // if (!fout){
-    //     perror(argv[2]);
-    //     return 1;
-    // }
-
-    page_stack = StackInit();
+    if (!fout){
+        perror(argv[2]);
+        return 1;
+    }
 
     yyrestart(fin);
     // yydebug = 1;
     yyparse();
 
     if(cnt_error == 0){
+        page_stack = StackInit();
+        inter_code_list = CodeListInit();
+        initiate();
         ProcessTree(parse_tree);
-        // PrintTree(parse_tree);
-        // initiate();
+        PrintTree(parse_tree);
+        Translate(parse_tree->root_, inter_code_list);
+        PrintCodeList(inter_code_list, fout);
         // int exist = ExistStruct(ROOT);
         // if(exist==1){
         //     printf("Cannot translate: Code contains variables or parameters of structure type.\n");
@@ -95,7 +93,7 @@ int main(int argc, char** argv){
 
     }
     fclose(fin);
-    // fclose(fout);
+    fclose(fout);
 
     return 0;
 }
