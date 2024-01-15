@@ -46,5 +46,6 @@ typedef struct Symbol_def Symbol;
 
 int TypeMatch(Type* type_a, Type* type_b);
 Field* HasFld(Field* fld, char* name);
+int TypeSize(Type *type);
 
 #endif

@@ -34,3 +34,20 @@ Field* HasFld(Field* fld, char* name){
     while(res!=NULL && strcmp(res->name, name)!=0) res = res->nxt;
     return res;
 }
+
+int TypeSize(Type *type){
+    if(type->kind == BASIC) return 4; // 4 bytes
+    if(type->kind == STRUCTURE){
+        int res = 0;
+        Field *fld = type->u.structure.field;
+        while(fld){
+            res += TypeSize(fld->type);
+            fld = fld->nxt;
+        }
+        return res;
+    }
+    else{
+        int ele_size = TypeSize(type->u.array.elem);
+        return ele_size * type->u.array.size;
+    }
+}

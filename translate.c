@@ -68,7 +68,9 @@ void Translate(TreeNode* self, InterCodeList *ir_list){
     RELEASE_OP
 }
 
-void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list){
+#define WANT_VAL 1
+#define WANT_ADD 2
+void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list, int request){ 
     SAVE_OP
     assert(strcmp(self->node_name_, "Exp")==0);
 
@@ -87,13 +89,25 @@ void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list){
 
     else if(self->cnt_child_ == 2){
         if(strcmp(self->first_child_->node_name_, "MINUS")==0){
-            TransExp(kthChild(self, 2), op3, ir_list);
+            TransExp(kthChild(self, 2), op3, ir_list, WANT_VAL);
             op1 = opde;
             op2 = NewConst(0);
             TRANS_IR(SUB);
         }
         else if(strcmp(self->first_child_->node_name_, "NOT")==0){
             // TODO: what?
+            op1 = opde;
+            op2 = NewConst(0);
+            TRANS_IR(ASSIGN_VAL2VAL);
+            op1 = NewLabel();
+            op2 = NewLabel();
+            TransCond(self, op1, op2, ir_list);
+            LABLE_IR(op1);
+            op1 = opde;
+            Operand temp = op2;
+            op2 = NewConst(1);
+            TRANS_IR(ASSIGN_VAL2VAL);
+            LABLE_IR(temp);
         }
     }
 
@@ -119,21 +133,15 @@ void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list){
         }
 
         else if(strcmp(midname, "ASSIGNOP")==0){
+            op2 = NewTemp();
+            TransExp(kthChild(self, 3), op2, ir_list, WANT_VAL);
             if(self->first_child_->cnt_child_==1 && strcmp(self->first_child_->first_child_->node_name_, "ID")==0){
                 op1 = GetVari(self->first_child_->first_child_->inter_no_);
-                op2 = NewTemp();
-                TransExp(kthChild(self, 3), op2, ir_list);
-                TRANS_IR(ASSIGN_VAL2VAL);
-                
-                op2 = op1;
-                op1 = opde;
                 TRANS_IR(ASSIGN_VAL2VAL);
             }
             else if(self->first_child_->cnt_child_==4 && strcmp(kthChild(self->first_child_, 2)->node_name_, "LB")==0){
                 op1 = NewTemp();
                 TransArray(self->first_child_, op1, ir_list);
-                op2 = NewTemp();
-                TransExp(kthChild(self, 3), op2, ir_list);
                 TRANS_IR(ASSIGN_VAL2PNT);
             }
         }
@@ -152,15 +160,43 @@ void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list){
         }
 
         else if(strcmp(midname, "Exp")==0){
-            TransExp(kthChild(self, 2), opde, ir_list);
+            TransExp(kthChild(self, 2), opde, ir_list, WANT_VAL);
+        }
+
+        else if(strcmp(midname, "DOT")==0){
+            Operand st_addr = NewTemp();
+            if(strcmp(self->first_child_->first_child_->node_name_, "ID")==0){
+                op1 = st_addr;
+                op2 = GetVari(self->first_child_->first_child_->inter_no_);
+                TRANS_IR(ASSIGN_ADD2VAL);
+            }
+            else{
+                TransExp(self->first_child_, st_addr, ir_list, WANT_ADD);
+            }
+            Field *fld = self->first_child_->type_->u.structure.field;
+            int offset = 0;
+            while(strcmp(fld->name, kthChild(self, 3)->compos_.id_) != 0){
+                offset += TypeSize(fld->type);
+                fld = fld->nxt;
+            }
+            op1 = opde;
+            op2 = st_addr;
+            op3 = NewConst(offset);
+            TRANS_IR(ADD);
+
+            if(request == WANT_VAL){
+                op1 = opde;
+                op2 = opde;
+                TRANS_IR(ASSIGN_PNT2VAL);
+            }
         }
 
         else{
             op1 = opde;
             op2 = NewTemp();
             op3 = NewTemp();
-            TransExp(kthChild(self, 1), op2, ir_list);
-            TransExp(kthChild(self, 3), op3, ir_list);
+            TransExp(kthChild(self, 1), op2, ir_list, WANT_VAL);
+            TransExp(kthChild(self, 3), op3, ir_list, WANT_VAL);
             if(strcmp(midname, "PLUS")==0) TRANS_IR(ADD);
             else if(strcmp(midname, "MINUS")==0) TRANS_IR(SUB);
             else if(strcmp(midname, "STAR")==0) TRANS_IR(MULTI);
@@ -194,7 +230,12 @@ void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list){
             op1 = opde;
             op2 = NewTemp();
             TransArray(self, op2, ir_list);
-            TRANS_IR(ASSIGN_PNT2VAL);
+            TRANS_IR(ASSIGN_VAL2VAL);
+            if(request == WANT_VAL){
+                op1 = opde;
+                op2 = opde;
+                TRANS_IR(ASSIGN_PNT2VAL);
+            }
         }
     }
     RELEASE_OP
@@ -209,11 +250,11 @@ void TransStmt(TreeNode* self, InterCodeList *ir_list){
     }
     else if(self->cnt_child_==2 && strcmp(self->first_child_->node_name_, "Exp")==0){
         op1 = NewTemp();
-        TransExp(self->first_child_, op1, ir_list);
+        TransExp(self->first_child_, op1, ir_list, WANT_VAL);
     }
     else if(self->cnt_child_==3 && strcmp(self->first_child_->node_name_, "RETURN")==0){
         op1 = NewTemp();
-        TransExp(kthChild(self, 2), op1, ir_list);
+        TransExp(kthChild(self, 2), op1, ir_list, WANT_VAL);
         TRANS_IR(RETURN);
     }
     else if(self->cnt_child_==5 && strcmp(self->first_child_->node_name_, "IF")==0){
@@ -261,8 +302,8 @@ void TransCond(TreeNode* self, Operand lt, Operand lf, InterCodeList *ir_list){
         if(strcmp(midname, "RELOP")==0){
             op1 = NewTemp();
             op2 = NewTemp();
-            TransExp(kthChild(self, 1), op1, ir_list);
-            TransExp(kthChild(self, 3), op2, ir_list);
+            TransExp(kthChild(self, 1), op1, ir_list, WANT_VAL);
+            TransExp(kthChild(self, 3), op2, ir_list, WANT_VAL);
             rel = kthChild(self, 2)->compos_.id_;
             op3 = lt;
             TRANS_IR(GOTO_COND);
@@ -288,7 +329,7 @@ void TransCond(TreeNode* self, Operand lt, Operand lf, InterCodeList *ir_list){
 
     else{
         op1 = NewTemp();
-        TransExp(self, op1, ir_list);
+        TransExp(self, op1, ir_list, WANT_VAL);
         op2 = NewConst(0);
         op3 = lt;
         rel = (char*)"!=";
@@ -347,7 +388,7 @@ void TransDec(TreeNode* self, InterCodeList *ir_list){
     assert(strcmp(self->node_name_, "Dec")==0);
     if(self->cnt_child_ == 3){ // assign
         op2 = NewTemp();
-        TransExp(kthChild(self, 3), op2, ir_list);
+        TransExp(kthChild(self, 3), op2, ir_list, WANT_VAL);
         op1 = GetVari(self->first_child_->first_child_->inter_no_);
         TRANS_IR(ASSIGN_VAL2VAL);
     }
@@ -384,7 +425,7 @@ void TransArgs(TreeNode* self, OpList *arg_list, InterCodeList *ir_list){
     }
     else{
         op1 = NewTemp();
-        TransExp(self->first_child_, op1, ir_list);
+        TransExp(self->first_child_, op1, ir_list, WANT_VAL);
     }
 
     OpListInsert(arg_list, op1);
@@ -412,11 +453,19 @@ void TransVarDec(TreeNode* self, int source, int size, InterCodeList *ir_list){
     }
     else{
         if(self->cnt_child_ == 1){ // Var -> ID
-            if(size == 0) return; // normal variable
+            if(size == 0) {
+                if(self->first_child_->type_->kind == BASIC) return; // normal vari
+                int struct_size = TypeSize(self->first_child_->type_);
+                op1 = GetVari(self->first_child_->inter_no_);
+                op2 = NewConst(struct_size);
+                TRANS_IR(DEC);
+            }
             else{
                 // declare array
                 op1 = GetVari(self->first_child_->inter_no_);
-                op2 = NewConst(size*4);
+                TreeNode *get_type = self;
+                while(strcmp(get_type->node_name_, "ID")!=0) get_type = get_type->first_child_;
+                op2 = NewConst(size * TypeSize(get_type->type_->u.array.elem));
                 TRANS_IR(DEC);
             }
         }
@@ -449,7 +498,7 @@ void TransVarList(TreeNode* self, InterCodeList *ir_list){
 void TransArray(TreeNode* self, Operand opde, InterCodeList *ir_list){
     SAVE_OP
     TreeNode *cur = self;
-    while(strcmp(cur->node_name_, "ID")!=0) cur = cur->first_child_;
+    while(cur->cnt_child_ == 4) cur = cur->first_child_;
     Type *dim = cur->type_;
     IntList *dim_list = IntListInit();
 
@@ -468,7 +517,7 @@ void TransArray(TreeNode* self, Operand opde, InterCodeList *ir_list){
     cur = self;
     while(cur_dim != NULL){
         Operand dim_size = NewTemp();
-        TransExp(kthChild(cur, 3), dim_size, ir_list);
+        TransExp(kthChild(cur, 3), dim_size, ir_list, WANT_VAL);
         op1 = dim_size;
         op2 = dim_size;
         op3 = NewConst(sub_size);
@@ -483,10 +532,10 @@ void TransArray(TreeNode* self, Operand opde, InterCodeList *ir_list){
         cur = cur->first_child_;
         cur_dim = cur_dim->next;
     }
-    assert(strcmp(cur->first_child_->node_name_, "ID")==0);
+    // assert(strcmp(cur->first_child_->node_name_, "ID")==0);
     op1 = addr;
     op2 = addr;
-    op3 = NewConst(4);
+    op3 = NewConst(TypeSize(kthChild(cur, cur->cnt_child_)->type_->u.array.elem));
     TRANS_IR(MULTI);
 
     TreeNode *check_global = cur;
@@ -496,9 +545,14 @@ void TransArray(TreeNode* self, Operand opde, InterCodeList *ir_list){
 
     if(strcmp(check_global->compos_.id_, "main")==0){
         Operand start_addr = NewTemp();
-        op1 = start_addr;
-        op2 = GetVari(cur->first_child_->inter_no_);
-        TRANS_IR(ASSIGN_ADD2VAL);
+        if(strcmp(cur->first_child_->node_name_, "Exp")==0){
+            TransExp(cur, start_addr, ir_list, WANT_ADD);
+        }
+        else{
+            op1 = start_addr;
+            op2 = GetVari(cur->first_child_->inter_no_);
+            TRANS_IR(ASSIGN_ADD2VAL);
+        }
         op1 = opde;
         op2 = addr;
         op3 = start_addr;
@@ -506,9 +560,14 @@ void TransArray(TreeNode* self, Operand opde, InterCodeList *ir_list){
     }
     else{
         Operand start_addr = NewTemp();
-        op1 = start_addr;
-        op2 = GetVari(cur->first_child_->inter_no_);
-        TRANS_IR(ASSIGN_VAL2VAL);
+        if(strcmp(cur->first_child_->node_name_, "Exp")==0){
+            TransExp(cur, start_addr, ir_list, WANT_ADD);
+        }
+        else{
+            op1 = start_addr;
+            op2 = GetVari(cur->first_child_->inter_no_);
+            TRANS_IR(ASSIGN_VAL2VAL);
+        }
         op1 = opde;
         op2 = addr;
         op3 = start_addr;

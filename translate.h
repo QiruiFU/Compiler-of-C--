@@ -11,7 +11,7 @@
 #define SC_DEC 2
 
 void Translate(TreeNode* self, InterCodeList *ir_list);
-void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list);
+void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list, int request);
 void TransStmt(TreeNode* self, InterCodeList *ir_list);
 void TransCond(TreeNode* self, Operand lt, Operand lf, InterCodeList *ir_list);
 void TransCompSt(TreeNode* self, InterCodeList *ir_list);

@@ -249,17 +249,30 @@ void CheckSemantics(TreeNode* self){
         self->type_ = (Type*)malloc(sizeof(Type));
         self->type_->kind = STRUCTURE;
 
-        TreeNode* Dec = kthChild(self, 2); // DecList
+        TreeNode* DecList = kthChild(self, 2); // DecList
         Field* tail = NULL;
         while(1){
             Field* new_fild = (Field*)malloc(sizeof(Field));
             new_fild->nxt = NULL;
-            new_fild->type = self->first_child_->type_;
-            TreeNode* get_name = Dec;
-            while(strcmp(get_name->node_name_, "ID")!=0) get_name = get_name->first_child_;
+            TreeNode* VarDec = DecList->first_child_->first_child_;
+            if(VarDec->cnt_child_ == 1){
+                new_fild->type = self->first_child_->type_;
+            }
+            else{
+                int array_size = 1;
+                while(VarDec->cnt_child_ != 1){
+                    array_size *= kthChild(VarDec, 3)->compos_.val_int_;
+                    VarDec = VarDec->first_child_;
+                }
+                new_fild->type = (Type*)malloc(sizeof(Type));
+                new_fild->type->kind = ARRAY;
+                new_fild->type->u.array.elem = self->first_child_->type_;
+                new_fild->type->u.array.size = array_size;
+            }
+            // while(strcmp(get_name->node_name_, "ID")!=0) get_name = get_name->first_child_;
             // new_fild->name = (char*)malloc(strlen(get_name->compos_.id_)+1);
             // strcpy(new_fild->name, get_name->compos_.id_);
-            new_fild->name = get_name->compos_.id_;
+            new_fild->name = VarDec->first_child_->compos_.id_;
             if(tail == NULL){
                 self->type_->u.structure.field = new_fild;
                 tail = new_fild;
@@ -268,8 +281,8 @@ void CheckSemantics(TreeNode* self){
                 tail->nxt = new_fild;
                 tail = tail->nxt;
             }
-            if(Dec->cnt_child_==1) break;
-            else Dec = kthChild(Dec, 3);
+            if(DecList->cnt_child_==1) break;
+            else DecList = kthChild(DecList, 3);
         }
     }
     else if(strcmp(self->node_name_, "Tag")==0){
