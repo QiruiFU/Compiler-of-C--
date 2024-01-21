@@ -8,7 +8,7 @@
 #include "translate.h"
 #include "stack.h"
 // #include "type_func.h"
-// #include "targetcode.h"
+#include "targetcode.h"
 
 extern int lineno;
 extern int cnt_error;
@@ -72,25 +72,9 @@ int main(int argc, char** argv){
         inter_code_list = CodeListInit();
         initiate();
         ProcessTree(parse_tree);
-        PrintTree(parse_tree);
+        // PrintTree(parse_tree);
         Translate(parse_tree->root_, inter_code_list);
-        PrintCodeList(inter_code_list, fout);
-        // int exist = ExistStruct(ROOT);
-        // if(exist==1){
-        //     printf("Cannot translate: Code contains variables or parameters of structure type.\n");
-        //     fclose(fin);
-        //     fclose(fout);
-        //     return 0;
-        // }
-
-        // Translate(ROOT);
-
-        // FILE* ir = fopen("ir.ir", "w");
-        // Print_List(CodeList, ir);
-        // fclose(ir);
-
-        // TgtCodeList(CodeList, fout);
-
+        TgtCodeList(inter_code_list, fout);
     }
     fclose(fin);
     fclose(fout);

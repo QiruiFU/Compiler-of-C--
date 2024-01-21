@@ -139,11 +139,18 @@ void TransExp(TreeNode* self, Operand opde, InterCodeList *ir_list, int request)
                 op1 = GetVari(self->first_child_->first_child_->inter_no_);
                 TRANS_IR(ASSIGN_VAL2VAL);
             }
+            else{
+                op1 = NewTemp();
+                TransExp(self->first_child_, op1, ir_list, WANT_ADD);
+                TRANS_IR(ASSIGN_VAL2PNT);
+            }
+            /*
             else if(self->first_child_->cnt_child_==4 && strcmp(kthChild(self->first_child_, 2)->node_name_, "LB")==0){
                 op1 = NewTemp();
                 TransArray(self->first_child_, op1, ir_list);
                 TRANS_IR(ASSIGN_VAL2PNT);
             }
+            */
         }
 
         else if(strcmp(midname, "LP")==0){
